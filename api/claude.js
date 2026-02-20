@@ -69,15 +69,26 @@ Exempel på format:
     }
 
     const data = await response.json()
-    const text = data.content[0].text
+    const text = data.content?.[0]?.text
+
+    if (!text) {
+      return res.status(500).json({ error: 'Tomt svar från AI', debug: JSON.stringify(data).slice(0, 500) })
+    }
 
     // Extrahera JSON från svaret
     const jsonMatch = text.match(/\[[\s\S]*\]/)
     if (!jsonMatch) {
-      return res.status(500).json({ error: 'Kunde inte tolka AI-svaret' })
+      return res.status(500).json({ error: 'Kunde inte tolka AI-svaret', debug: text.slice(0, 500) })
     }
 
-    const posts = JSON.parse(jsonMatch[0]).map(item => ({
+    let parsed
+    try {
+      parsed = JSON.parse(jsonMatch[0])
+    } catch (parseErr) {
+      return res.status(500).json({ error: 'JSON-parsning misslyckades', debug: jsonMatch[0].slice(0, 500) })
+    }
+
+    const posts = parsed.map(item => ({
       id: crypto.randomUUID(),
       story_type: storyType,
       status: 'draft',

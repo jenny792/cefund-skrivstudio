@@ -56,18 +56,7 @@ export default function Generate() {
       setPosts(result.posts || [])
       setStep(4)
     } catch (err) {
-      // Fallback: generera dummy-inlägg för test utan API
-      const dummyPosts = Array.from({ length: 7 }, (_, i) => ({
-        id: crypto.randomUUID(),
-        story_type: selectedType,
-        status: 'draft',
-        fields: Object.fromEntries(
-          storyType.columns.map(col => [col, `[${col} — exempeltext ${i + 1}]`])
-        ),
-      }))
-      setPosts(dummyPosts)
-      setError('API ej konfigurerat — visar exempeldata')
-      setStep(4)
+      setError(`Kunde inte generera: ${err.message}`)
     } finally {
       setLoading(false)
     }
@@ -196,6 +185,11 @@ export default function Generate() {
       {/* Steg 3: Bekräfta och generera */}
       {step === 3 && (
         <div className="max-w-lg">
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-800 text-sm px-4 py-3 rounded-xl mb-6">
+              {error}
+            </div>
+          )}
           <div className="bg-bg-subtle rounded-xl p-6 mb-6">
             <h2 className="text-lg mb-4">Sammanfattning</h2>
             <dl className="space-y-3 text-sm">
