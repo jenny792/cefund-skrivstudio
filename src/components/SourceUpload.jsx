@@ -101,6 +101,7 @@ export default function SourceUpload({ onAdd, onClose }) {
                 type="url"
                 value={url}
                 onChange={e => setUrl(e.target.value)}
+                onBlur={() => { if (url && !content) handleScrape() }}
                 className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent"
                 placeholder="https://..."
               />

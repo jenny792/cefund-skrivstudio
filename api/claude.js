@@ -28,6 +28,42 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Okänd story-typ' })
   }
 
+  // Om en källa bara är en URL, hämta textinnehållet
+  const resolvedSources = await Promise.all(
+    sources.map(async (s) => {
+      const trimmed = s.trim()
+      if (trimmed.match(/^https?:\/\/\S+$/) && trimmed.length < 300) {
+        try {
+          const resp = await fetch(trimmed, {
+            headers: { 'User-Agent': 'Mozilla/5.0 (compatible; CefundBot/1.0)' },
+          })
+          if (!resp.ok) return s
+          const html = await resp.text()
+          const text = html
+            .replace(/<script[\s\S]*?<\/script>/gi, '')
+            .replace(/<style[\s\S]*?<\/style>/gi, '')
+            .replace(/<nav[\s\S]*?<\/nav>/gi, '')
+            .replace(/<footer[\s\S]*?<\/footer>/gi, '')
+            .replace(/<[^>]+>/g, '\n')
+            .replace(/&nbsp;/g, ' ')
+            .replace(/&amp;/g, '&')
+            .replace(/\n{3,}/g, '\n\n')
+            .replace(/[ \t]+/g, ' ')
+            .split('\n')
+            .map(line => line.trim())
+            .filter(line => line.length > 0)
+            .join('\n')
+            .trim()
+            .slice(0, 10000)
+          return text || s
+        } catch {
+          return s
+        }
+      }
+      return s
+    })
+  )
+
   const prompt = `Du skriver Instagram Stories-innehåll för Cefund. Cecilia är grundaren.
 
 VIKTIGT: Använd ENBART information som finns i källorna nedan. Hitta INTE på fakta, siffror, tjänster eller påståenden som inte finns i källmaterialet. Allt innehåll måste kunna spåras tillbaka till en specifik källa. Om källorna inte innehåller tillräckligt med material för 7 unika inlägg, skapa färre men håll kvaliteten.
@@ -39,7 +75,7 @@ Varje inlägg ska ha dessa fält: ${typeInfo.columns.join(', ')}
 Tonläge: ${tone || 'professionell'}
 
 Här är källorna — använd ENBART dessa:
-${sources.map((s, i) => `--- Källa ${i + 1} ---\n${s}`).join('\n\n')}
+${resolvedSources.map((s, i) => `--- Källa ${i + 1} ---\n${s}`).join('\n\n')}
 
 Svara ENBART med en JSON-array. Varje objekt ska ha ett "fields"-objekt med nycklar som matchar fältnamnen ovan.
 
