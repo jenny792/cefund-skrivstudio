@@ -1,35 +1,16 @@
 import { useState } from 'react'
-import { Sparkles, ArrowLeft, ArrowRight, Loader2 } from 'lucide-react'
+import { Sparkles, ArrowLeft, ArrowRight, Loader2, Library } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import StoryTypeCard from '../components/StoryTypeCard'
 import PostCard from '../components/PostCard'
 import PostPreview from '../components/PostPreview'
 import ExportBar from '../components/ExportBar'
 import { STORY_TYPES, TONES } from '../lib/storyTypes'
 import { generatePosts } from '../lib/claude'
-
-// Exempelkällor för att testa utan Supabase
-const EXAMPLE_SOURCES = [
-  {
-    id: '1',
-    title: 'Eventpresentation Q1 2026',
-    type: 'presentation',
-    content: 'Cefund hjälper företag att ta kontroll över sin ekonomi. Vi erbjuder rådgivning inom företagsekonomi, bokföring och strategisk planering. Cecilia har 15 års erfarenhet av att hjälpa småföretag växa.',
-  },
-  {
-    id: '2',
-    title: 'Kundmöte — Restaurang Söder',
-    type: 'transcript_meeting',
-    content: 'Kunden hade ingen koll på sina marginaler. Efter 3 månaders samarbete ökade de sin lönsamhet med 23%. Nyckeln var att förstå vilka menyrätter som faktiskt genererade vinst.',
-  },
-  {
-    id: '3',
-    title: 'Cecilias anteckningar — Myter om ekonomi',
-    type: 'note',
-    content: 'Vanliga myter: 1) Man måste vara ekonom för att förstå sin bokföring. 2) Alla företag behöver en CFO. 3) Bokföring handlar bara om att betala skatt. 4) Man kan inte påverka sina marginaler i en lågkonjunktur.',
-  },
-]
+import { getSources } from '../lib/sources'
 
 export default function Generate() {
+  const [sources] = useState(() => getSources())
   const [step, setStep] = useState(1)
   const [selectedType, setSelectedType] = useState(null)
   const [selectedSources, setSelectedSources] = useState([])
@@ -62,7 +43,7 @@ export default function Generate() {
     setError(null)
 
     try {
-      const sourcesContent = EXAMPLE_SOURCES
+      const sourcesContent = sources
         .filter(s => selectedSources.includes(s.id))
         .map(s => s.content)
 
@@ -142,8 +123,17 @@ export default function Generate() {
       {step === 2 && (
         <div>
           <h2 className="text-lg mb-4">Välj källor</h2>
+          {sources.length === 0 ? (
+            <div className="bg-bg-subtle rounded-xl p-8 text-center mb-8">
+              <Library size={24} className="mx-auto text-text-muted mb-2" />
+              <p className="text-text-muted text-sm mb-3">Inga källor ännu.</p>
+              <Link to="/kallor" className="text-sm text-accent font-medium hover:underline">
+                Lägg till källor i Källbiblioteket →
+              </Link>
+            </div>
+          ) : (
           <div className="space-y-2 mb-8">
-            {EXAMPLE_SOURCES.map(source => (
+            {sources.map(source => (
               <label
                 key={source.id}
                 className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
@@ -165,6 +155,7 @@ export default function Generate() {
               </label>
             ))}
           </div>
+          )}
 
           <h2 className="text-lg mb-4">Välj tonläge</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">

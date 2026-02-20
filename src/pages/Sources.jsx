@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Plus, Search, FileText, Globe, Mic, StickyNote } from 'lucide-react'
 import SourceUpload from '../components/SourceUpload'
+import { getSources, addSource as saveSource } from '../lib/sources'
 
 const TYPE_ICONS = {
   transcript_event: Mic,
@@ -21,13 +22,14 @@ const TYPE_LABELS = {
 }
 
 export default function Sources() {
-  const [sources, setSources] = useState([])
+  const [sources, setSources] = useState(() => getSources())
   const [showUpload, setShowUpload] = useState(false)
   const [filter, setFilter] = useState('')
   const [typeFilter, setTypeFilter] = useState('all')
 
-  function addSource(source) {
-    setSources([source, ...sources])
+  function handleAddSource(source) {
+    const updated = saveSource(source)
+    setSources(updated)
     setShowUpload(false)
   }
 
@@ -55,7 +57,7 @@ export default function Sources() {
 
       {showUpload && (
         <div className="mb-6">
-          <SourceUpload onAdd={addSource} onClose={() => setShowUpload(false)} />
+          <SourceUpload onAdd={handleAddSource} onClose={() => setShowUpload(false)} />
         </div>
       )}
 
