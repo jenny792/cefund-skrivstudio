@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Upload, X } from 'lucide-react'
+import { Upload, X, Loader2, Globe } from 'lucide-react'
 
 const SOURCE_TYPES = [
   { id: 'transcript_event', label: 'Transkript (event)' },
@@ -15,6 +15,33 @@ export default function SourceUpload({ onAdd, onClose }) {
   const [type, setType] = useState('note')
   const [content, setContent] = useState('')
   const [url, setUrl] = useState('')
+  const [scraping, setScraping] = useState(false)
+  const [scrapeError, setScrapeError] = useState(null)
+
+  async function handleScrape() {
+    if (!url) return
+    setScraping(true)
+    setScrapeError(null)
+    try {
+      const res = await fetch('/api/scrape', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      setContent(data.content)
+      if (!title) {
+        // Föreslå titel baserat på URL
+        const hostname = new URL(url).hostname.replace('www.', '')
+        setTitle(hostname)
+      }
+    } catch (err) {
+      setScrapeError(err.message)
+    } finally {
+      setScraping(false)
+    }
+  }
 
   function handleSubmit(e) {
     e.preventDefault()
@@ -29,6 +56,7 @@ export default function SourceUpload({ onAdd, onClose }) {
     setTitle('')
     setContent('')
     setUrl('')
+    setScrapeError(null)
   }
 
   return (
@@ -68,24 +96,45 @@ export default function SourceUpload({ onAdd, onClose }) {
         {type === 'webpage' && (
           <div>
             <label className="text-sm text-text-muted block mb-1">URL</label>
-            <input
-              type="url"
-              value={url}
-              onChange={e => setUrl(e.target.value)}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent"
-              placeholder="https://..."
-            />
+            <div className="flex gap-2">
+              <input
+                type="url"
+                value={url}
+                onChange={e => setUrl(e.target.value)}
+                className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent"
+                placeholder="https://..."
+              />
+              <button
+                type="button"
+                onClick={handleScrape}
+                disabled={!url || scraping}
+                className="flex items-center gap-2 bg-bg-subtle hover:bg-gray-200 disabled:opacity-40 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              >
+                {scraping ? (
+                  <><Loader2 size={14} className="animate-spin" /> Hämtar...</>
+                ) : (
+                  <><Globe size={14} /> Hämta text</>
+                )}
+              </button>
+            </div>
+            {scrapeError && (
+              <p className="text-xs text-red-500 mt-1">{scrapeError}</p>
+            )}
           </div>
         )}
         <div>
-          <label className="text-sm text-text-muted block mb-1">Innehåll</label>
+          <label className="text-sm text-text-muted block mb-1">
+            Innehåll {type === 'webpage' && content && <span className="text-green-600">(hämtat från sidan)</span>}
+          </label>
           <textarea
             value={content}
             onChange={e => setContent(e.target.value)}
             required
             rows={6}
             className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent resize-none"
-            placeholder="Klistra in text från transkript, dokument, presentation..."
+            placeholder={type === 'webpage'
+              ? 'Klistra in URL ovan och klicka "Hämta text", eller klistra in manuellt...'
+              : 'Klistra in text från transkript, dokument, presentation...'}
           />
         </div>
         <button
