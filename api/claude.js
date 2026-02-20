@@ -28,18 +28,20 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Okänd story-typ' })
   }
 
-  const prompt = `Du är en expert på att skriva Instagram Stories-innehåll för Cefund, ett företag som hjälper andra företag med ekonomi och rådgivning. Cecilia är grundaren.
+  const prompt = `Du skriver Instagram Stories-innehåll för Cefund. Cecilia är grundaren.
 
-Skapa exakt 7 inlägg av typen "${typeInfo.name}".
+VIKTIGT: Använd ENBART information som finns i källorna nedan. Hitta INTE på fakta, siffror, tjänster eller påståenden som inte finns i källmaterialet. Allt innehåll måste kunna spåras tillbaka till en specifik källa. Om källorna inte innehåller tillräckligt med material för 7 unika inlägg, skapa färre men håll kvaliteten.
+
+Skapa upp till 7 inlägg av typen "${typeInfo.name}".
 
 Varje inlägg ska ha dessa fält: ${typeInfo.columns.join(', ')}
 
 Tonläge: ${tone || 'professionell'}
 
-Basera innehållet på dessa källor:
+Här är källorna — använd ENBART dessa:
 ${sources.map((s, i) => `--- Källa ${i + 1} ---\n${s}`).join('\n\n')}
 
-Svara ENBART med en JSON-array med 7 objekt. Varje objekt ska ha ett "fields"-objekt med nycklar som matchar fältnamnen ovan.
+Svara ENBART med en JSON-array. Varje objekt ska ha ett "fields"-objekt med nycklar som matchar fältnamnen ovan.
 
 Exempel på format:
 [
