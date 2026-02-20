@@ -1,29 +1,38 @@
-// Delad state för källor via localStorage
-const STORAGE_KEY = 'cefund-sources'
+import { supabase } from './supabase'
 
-export function getSources() {
-  try {
-    const data = localStorage.getItem(STORAGE_KEY)
-    return data ? JSON.parse(data) : []
-  } catch {
+export async function getSources() {
+  if (!supabase) return []
+  const { data, error } = await supabase
+    .from('sources')
+    .select('*')
+    .order('created_at', { ascending: false })
+  if (error) {
+    console.error('Fel vid hämtning av källor:', error.message)
     return []
   }
+  return data
 }
 
-export function saveSources(sources) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(sources))
+export async function addSource(source) {
+  if (!supabase) return []
+  const { title, type, content, url } = source
+  const { error } = await supabase
+    .from('sources')
+    .insert({ title, type, content, url })
+  if (error) {
+    console.error('Fel vid sparande av källa:', error.message)
+  }
+  return getSources()
 }
 
-export function addSource(source) {
-  const sources = getSources()
-  const updated = [source, ...sources]
-  saveSources(updated)
-  return updated
-}
-
-export function deleteSource(id) {
-  const sources = getSources()
-  const updated = sources.filter(s => s.id !== id)
-  saveSources(updated)
-  return updated
+export async function deleteSource(id) {
+  if (!supabase) return []
+  const { error } = await supabase
+    .from('sources')
+    .delete()
+    .eq('id', id)
+  if (error) {
+    console.error('Fel vid borttagning av källa:', error.message)
+  }
+  return getSources()
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Sparkles, ArrowLeft, ArrowRight, Loader2, Library } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import StoryTypeCard from '../components/StoryTypeCard'
@@ -10,7 +10,11 @@ import { generatePosts } from '../lib/claude'
 import { getSources } from '../lib/sources'
 
 export default function Generate() {
-  const [sources] = useState(() => getSources())
+  const [sources, setSources] = useState([])
+
+  useEffect(() => {
+    getSources().then(setSources)
+  }, [])
   const [step, setStep] = useState(1)
   const [selectedType, setSelectedType] = useState(null)
   const [selectedSources, setSelectedSources] = useState([])

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Plus, Search, FileText, Globe, Mic, StickyNote } from 'lucide-react'
 import SourceUpload from '../components/SourceUpload'
 import { getSources, addSource as saveSource } from '../lib/sources'
@@ -22,13 +22,21 @@ const TYPE_LABELS = {
 }
 
 export default function Sources() {
-  const [sources, setSources] = useState(() => getSources())
+  const [sources, setSources] = useState([])
   const [showUpload, setShowUpload] = useState(false)
   const [filter, setFilter] = useState('')
   const [typeFilter, setTypeFilter] = useState('all')
+  const [loading, setLoading] = useState(true)
 
-  function handleAddSource(source) {
-    const updated = saveSource(source)
+  useEffect(() => {
+    getSources().then(data => {
+      setSources(data)
+      setLoading(false)
+    })
+  }, [])
+
+  async function handleAddSource(source) {
+    const updated = await saveSource(source)
     setSources(updated)
     setShowUpload(false)
   }
@@ -86,7 +94,11 @@ export default function Sources() {
       </div>
 
       {/* Lista */}
-      {filtered.length === 0 ? (
+      {loading ? (
+        <div className="bg-bg-subtle rounded-xl p-8 text-center">
+          <p className="text-text-muted text-sm">Laddar källor...</p>
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="bg-bg-subtle rounded-xl p-8 text-center">
           <p className="text-text-muted text-sm">
             {sources.length === 0
