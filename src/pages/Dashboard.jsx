@@ -1,7 +1,29 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Sparkles, Library, FileText, ArrowRight } from 'lucide-react'
+import { Sparkles, Library, FileText, ArrowRight, Loader2 } from 'lucide-react'
+import PostCard from '../components/PostCard'
+import { getPosts, updatePost as updatePostInDb } from '../lib/posts'
 
 export default function Dashboard() {
+  const [recentPosts, setRecentPosts] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    getPosts({ limit: 5 })
+      .then(setRecentPosts)
+      .catch(err => console.error('Kunde inte hämta senaste inlägg:', err))
+      .finally(() => setLoading(false))
+  }, [])
+
+  async function handleUpdatePost(updated) {
+    setRecentPosts(prev => prev.map(p => p.id === updated.id ? updated : p))
+    try {
+      await updatePostInDb(updated.id, { fields: updated.fields })
+    } catch (err) {
+      console.error('Kunde inte spara redigering:', err)
+    }
+  }
+
   return (
     <div>
       <div className="mb-8">
@@ -48,12 +70,37 @@ export default function Dashboard() {
         </Link>
       </div>
 
-      {/* Senaste inlägg — placeholder */}
+      {/* Senaste inlägg */}
       <div>
-        <h2 className="text-lg mb-4">Senaste inlägg</h2>
-        <div className="bg-bg-subtle rounded-xl p-8 text-center">
-          <p className="text-text-muted text-sm">Inga inlägg ännu. Börja med att generera stories!</p>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg">Senaste inlägg</h2>
+          {recentPosts.length > 0 && (
+            <Link to="/inlagg" className="text-sm text-accent font-medium hover:underline">
+              Visa alla →
+            </Link>
+          )}
         </div>
+        {loading ? (
+          <div className="flex justify-center py-8">
+            <Loader2 size={24} className="animate-spin text-text-muted" />
+          </div>
+        ) : recentPosts.length === 0 ? (
+          <div className="bg-bg-subtle rounded-xl p-8 text-center">
+            <p className="text-text-muted text-sm">Inga inlägg ännu. Börja med att generera stories!</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {recentPosts.map(post => (
+              <PostCard
+                key={post.id}
+                post={post}
+                onUpdate={handleUpdatePost}
+                onToggleSelect={() => {}}
+                isSelected={false}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

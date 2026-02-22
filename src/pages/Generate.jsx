@@ -8,6 +8,7 @@ import ExportBar from '../components/ExportBar'
 import { STORY_TYPES, TONES } from '../lib/storyTypes'
 import { generatePosts } from '../lib/claude'
 import { getSources } from '../lib/sources'
+import { savePosts, updatePost as updatePostInDb } from '../lib/posts'
 
 export default function Generate() {
   const [sources, setSources] = useState([])
@@ -38,8 +39,13 @@ export default function Generate() {
     )
   }
 
-  function updatePost(updated) {
+  async function handleUpdatePost(updated) {
     setPosts(prev => prev.map(p => p.id === updated.id ? updated : p))
+    try {
+      await updatePostInDb(updated.id, { fields: updated.fields })
+    } catch (err) {
+      console.error('Kunde inte spara redigering:', err)
+    }
   }
 
   async function handleGenerate() {
@@ -57,7 +63,18 @@ export default function Generate() {
         tone: selectedTone,
       })
 
-      setPosts(result.posts || [])
+      const generatedPosts = result.posts || []
+
+      // Spara i Supabase och använd returnerade poster (med riktiga id:n)
+      try {
+        const savedPosts = await savePosts(generatedPosts, selectedType)
+        setPosts(savedPosts)
+      } catch (saveErr) {
+        console.error('Kunde inte spara till Supabase:', saveErr)
+        // Visa ändå de genererade inläggen lokalt
+        setPosts(generatedPosts)
+      }
+
       setStep(4)
     } catch (err) {
       setError(`Kunde inte generera: ${err.message}`)
@@ -269,7 +286,7 @@ export default function Generate() {
               <PostCard
                 key={post.id}
                 post={post}
-                onUpdate={updatePost}
+                onUpdate={handleUpdatePost}
                 onToggleSelect={togglePostSelect}
                 isSelected={selectedPostIds.includes(post.id)}
               />

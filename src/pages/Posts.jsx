@@ -1,16 +1,36 @@
-import { useState } from 'react'
-import { Search, Download } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Search, Loader2 } from 'lucide-react'
 import PostCard from '../components/PostCard'
 import ExportBar from '../components/ExportBar'
 import { STORY_TYPES } from '../lib/storyTypes'
+import { getPosts, updatePost as updatePostInDb } from '../lib/posts'
 
 export default function Posts() {
-  // I framtiden hämtas inlägg från Supabase — nu är det tomt
   const [posts, setPosts] = useState([])
+  const [loading, setLoading] = useState(true)
   const [selectedIds, setSelectedIds] = useState([])
   const [typeFilter, setTypeFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
+
+  useEffect(() => {
+    fetchPosts()
+  }, [typeFilter, statusFilter])
+
+  async function fetchPosts() {
+    setLoading(true)
+    try {
+      const data = await getPosts({
+        storyType: typeFilter,
+        status: statusFilter,
+      })
+      setPosts(data)
+    } catch (err) {
+      console.error('Kunde inte hämta inlägg:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   function toggleSelect(id) {
     setSelectedIds(prev =>
@@ -18,18 +38,21 @@ export default function Posts() {
     )
   }
 
-  function updatePost(updated) {
+  async function handleUpdatePost(updated) {
     setPosts(prev => prev.map(p => p.id === updated.id ? updated : p))
+    try {
+      await updatePostInDb(updated.id, { fields: updated.fields })
+    } catch (err) {
+      console.error('Kunde inte spara redigering:', err)
+    }
   }
 
+  // Lokal sökning (över redan hämtade poster)
   const filtered = posts.filter(p => {
-    const matchesType = typeFilter === 'all' || p.story_type === typeFilter
-    const matchesStatus = statusFilter === 'all' || p.status === statusFilter
-    const matchesSearch = searchQuery === '' ||
-      Object.values(p.fields).some(v =>
-        v.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    return matchesType && matchesStatus && matchesSearch
+    if (searchQuery === '') return true
+    return Object.values(p.fields).some(v =>
+      String(v).toLowerCase().includes(searchQuery.toLowerCase())
+    )
   })
 
   return (
@@ -76,7 +99,11 @@ export default function Posts() {
       </div>
 
       {/* Lista */}
-      {filtered.length === 0 ? (
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <Loader2 size={24} className="animate-spin text-text-muted" />
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="bg-bg-subtle rounded-xl p-8 text-center">
           <p className="text-text-muted text-sm">
             {posts.length === 0
@@ -90,7 +117,7 @@ export default function Posts() {
             <PostCard
               key={post.id}
               post={post}
-              onUpdate={updatePost}
+              onUpdate={handleUpdatePost}
               onToggleSelect={toggleSelect}
               isSelected={selectedIds.includes(post.id)}
             />
