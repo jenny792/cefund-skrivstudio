@@ -25,6 +25,18 @@ export async function addSource(source) {
   return getSources()
 }
 
+export async function updateSource(id, fields) {
+  if (!supabase) return []
+  const { error } = await supabase
+    .from('sources')
+    .update(fields)
+    .eq('id', id)
+  if (error) {
+    console.error('Fel vid uppdatering av källa:', error.message)
+  }
+  return getSources()
+}
+
 export async function deleteSource(id) {
   if (!supabase) return []
   const { error } = await supabase
