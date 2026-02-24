@@ -1,3 +1,13 @@
+// LinkedIn-typ-ID:n för att avgöra plattform från story_type
+export const LINKEDIN_TYPE_IDS = new Set([
+  'tankeledare', 'tips-insikter', 'storytelling', 'data-statistik',
+  'fraga-svar', 'myt-vs-fakta', 'listicle', 'kundberattelse',
+])
+
+export function isLinkedInType(storyType) {
+  return LINKEDIN_TYPE_IDS.has(storyType)
+}
+
 // LinkedIn-inläggstyper med metadata
 export const LINKEDIN_TYPES = [
   {

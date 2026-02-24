@@ -125,14 +125,11 @@ export default function Generate() {
         platform,
       })
 
-      const generatedPosts = (result.posts || []).map(p => ({
-        ...p,
-        platform,
-      }))
+      const generatedPosts = result.posts || []
 
       // Spara i Supabase och använd returnerade poster (med riktiga id:n)
       try {
-        const savedPosts = await savePosts(generatedPosts, selectedType, platform)
+        const savedPosts = await savePosts(generatedPosts, selectedType)
         setPosts(savedPosts)
       } catch (saveErr) {
         console.error('Kunde inte spara till Supabase:', saveErr)

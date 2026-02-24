@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { Check, Pencil, X, Copy, Linkedin } from 'lucide-react'
+import { isLinkedInType } from '../lib/linkedinTypes'
 
 export default function PostCard({ post, onUpdate, onToggleSelect, isSelected }) {
   const [editing, setEditing] = useState(false)
   const [fields, setFields] = useState(post.fields)
   const [copied, setCopied] = useState(false)
 
-  const isLinkedin = post.platform === 'linkedin'
+  const isLinkedin = isLinkedInType(post.story_type)
 
   function handleSave() {
     onUpdate({ ...post, fields })
