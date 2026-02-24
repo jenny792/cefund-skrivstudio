@@ -2,13 +2,13 @@ import { Download } from 'lucide-react'
 import { exportPostsToCSV } from '../lib/csv'
 import { logExport } from '../lib/exports'
 
-export default function ExportBar({ selectedPosts, storyType }) {
+export default function ExportBar({ selectedPosts, storyType, platform = 'instagram' }) {
   const count = selectedPosts.length
 
   if (count === 0) return null
 
   async function handleExport() {
-    exportPostsToCSV(selectedPosts, storyType)
+    exportPostsToCSV(selectedPosts, storyType, platform)
 
     // Logga exporten i Supabase
     try {

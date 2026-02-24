@@ -1,11 +1,12 @@
 import { supabase } from './supabase'
 
 // Spara flera inlägg (bulk insert efter generering)
-export async function savePosts(posts, storyType) {
+export async function savePosts(posts, storyType, platform = 'instagram') {
   const rows = posts.map(post => ({
     story_type: storyType,
     status: post.status || 'draft',
     fields: post.fields,
+    platform,
   }))
 
   const { data, error } = await supabase
@@ -18,7 +19,7 @@ export async function savePosts(posts, storyType) {
 }
 
 // Hämta inlägg med valfria filter
-export async function getPosts({ storyType, status, limit } = {}) {
+export async function getPosts({ storyType, status, limit, platform } = {}) {
   let query = supabase
     .from('posts')
     .select('*')
@@ -29,6 +30,9 @@ export async function getPosts({ storyType, status, limit } = {}) {
   }
   if (status && status !== 'all') {
     query = query.eq('status', status)
+  }
+  if (platform && platform !== 'all') {
+    query = query.eq('platform', platform)
   }
   if (limit) {
     query = query.limit(limit)

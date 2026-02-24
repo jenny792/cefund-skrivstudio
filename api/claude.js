@@ -11,6 +11,17 @@ const STORY_TYPE_MAP = {
   'vad-skulle-du-valja': { name: 'Vad skulle du välja?', columns: ['Hook', 'Alternativ A', 'Alternativ B', 'Reveal'] },
 }
 
+const LINKEDIN_TYPE_MAP = {
+  'tankeledare': { name: 'Tankeledare', columns: ['Hook', 'Brödtext', 'Avslut', 'CTA'] },
+  'tips-insikter': { name: 'Tips & Insikter', columns: ['Hook', 'Tipslista', 'Sammanfattning', 'CTA'] },
+  'storytelling': { name: 'Storytelling', columns: ['Hook', 'Berättelse', 'Insikt', 'CTA'] },
+  'data-statistik': { name: 'Data & Statistik', columns: ['Hook', 'Siffra', 'Analys', 'CTA'] },
+  'fraga-svar': { name: 'Fråga & Svar', columns: ['Fråga', 'Svar', 'Kontext', 'CTA'] },
+  'myt-vs-fakta': { name: 'Myt vs Fakta', columns: ['Myt', 'Fakta', 'Förklaring', 'CTA'] },
+  'listicle': { name: 'Listicle', columns: ['Rubrik', 'Punktlista', 'Avslut', 'CTA'] },
+  'kundberattelse': { name: 'Kundberättelse', columns: ['Rubrik', 'Situation', 'Resultat', 'CTA'] },
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Metoden stöds ej' })
@@ -21,11 +32,13 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'ANTHROPIC_API_KEY saknas' })
   }
 
-  const { storyType, sources, tone } = req.body
-  const typeInfo = STORY_TYPE_MAP[storyType]
+  const { storyType, sources, tone, platform = 'instagram' } = req.body
+
+  const typeMap = platform === 'linkedin' ? LINKEDIN_TYPE_MAP : STORY_TYPE_MAP
+  const typeInfo = typeMap[storyType]
 
   if (!typeInfo) {
-    return res.status(400).json({ error: 'Okänd story-typ' })
+    return res.status(400).json({ error: 'Okänd inläggstyp' })
   }
 
   // Om en källa bara är en URL, hämta textinnehållet
@@ -64,25 +77,10 @@ export default async function handler(req, res) {
     })
   )
 
-  const prompt = `Du skriver Instagram Stories-innehåll för Cefund. Cecilia är grundaren.
-
-VIKTIGT: Använd ENBART information som finns i källorna nedan. Hitta INTE på fakta, siffror, tjänster eller påståenden som inte finns i källmaterialet. Allt innehåll måste kunna spåras tillbaka till en specifik källa. Om källorna inte innehåller tillräckligt med material för 7 unika inlägg, skapa färre men håll kvaliteten.
-
-Skapa upp till 7 inlägg av typen "${typeInfo.name}".
-
-Varje inlägg ska ha dessa fält: ${typeInfo.columns.join(', ')}
-
-Tonläge: ${tone || 'professionell'}
-
-Här är källorna — använd ENBART dessa:
-${resolvedSources.map((s, i) => `--- Källa ${i + 1} ---\n${s}`).join('\n\n')}
-
-Svara ENBART med en JSON-array. Varje objekt ska ha ett "fields"-objekt med nycklar som matchar fältnamnen ovan.
-
-Exempel på format:
-[
-  { "fields": { "${typeInfo.columns[0]}": "...", "${typeInfo.columns[1]}": "...", "${typeInfo.columns[2]}": "...", "${typeInfo.columns[3]}": "..." } }
-]`
+  const postCount = platform === 'linkedin' ? 3 : 7
+  const prompt = platform === 'linkedin'
+    ? buildLinkedInPrompt(typeInfo, tone, resolvedSources, postCount)
+    : buildInstagramPrompt(typeInfo, tone, resolvedSources, postCount)
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -135,4 +133,57 @@ Exempel på format:
   } catch (err) {
     return res.status(500).json({ error: `Serverfel: ${err.message}` })
   }
+}
+
+function buildInstagramPrompt(typeInfo, tone, sources, count) {
+  return `Du skriver Instagram Stories-innehåll för Cefund. Cecilia är grundaren.
+
+VIKTIGT: Använd ENBART information som finns i källorna nedan. Hitta INTE på fakta, siffror, tjänster eller påståenden som inte finns i källmaterialet. Allt innehåll måste kunna spåras tillbaka till en specifik källa. Om källorna inte innehåller tillräckligt med material för ${count} unika inlägg, skapa färre men håll kvaliteten.
+
+Skapa upp till ${count} inlägg av typen "${typeInfo.name}".
+
+Varje inlägg ska ha dessa fält: ${typeInfo.columns.join(', ')}
+
+Tonläge: ${tone || 'professionell'}
+
+Här är källorna — använd ENBART dessa:
+${sources.map((s, i) => `--- Källa ${i + 1} ---\n${s}`).join('\n\n')}
+
+Svara ENBART med en JSON-array. Varje objekt ska ha ett "fields"-objekt med nycklar som matchar fältnamnen ovan.
+
+Exempel på format:
+[
+  { "fields": { "${typeInfo.columns[0]}": "...", "${typeInfo.columns[1]}": "...", "${typeInfo.columns[2]}": "...", "${typeInfo.columns[3]}": "..." } }
+]`
+}
+
+function buildLinkedInPrompt(typeInfo, tone, sources, count) {
+  return `Du skriver LinkedIn-inlägg för Cefund. Cecilia är grundaren.
+
+VIKTIGT: Använd ENBART information som finns i källorna nedan. Hitta INTE på fakta, siffror, tjänster eller påståenden som inte finns i källmaterialet. Allt innehåll måste kunna spåras tillbaka till en specifik källa. Om källorna inte innehåller tillräckligt med material för ${count} unika inlägg, skapa färre men håll kvaliteten.
+
+Skapa upp till ${count} LinkedIn-inlägg av typen "${typeInfo.name}".
+
+Varje inlägg ska ha dessa fält: ${typeInfo.columns.join(', ')}
+
+FORMAT-KRAV FÖR LINKEDIN:
+- Varje fält ska vara 200-400 tecken (längre än Instagram)
+- Använd radbrytningar för läsbarhet
+- Använd emojis sparsamt men strategiskt (1-2 per fält)
+- Listor med punkter eller siffror där det passar
+- Hook-fältet ska vara en stark öppning som fångar uppmärksamhet i flödet
+- CTA ska uppmuntra till kommentarer, delningar eller klick
+- Skriv för en B2B-publik på LinkedIn
+
+Tonläge: ${tone || 'professionell'}
+
+Här är källorna — använd ENBART dessa:
+${sources.map((s, i) => `--- Källa ${i + 1} ---\n${s}`).join('\n\n')}
+
+Svara ENBART med en JSON-array. Varje objekt ska ha ett "fields"-objekt med nycklar som matchar fältnamnen ovan.
+
+Exempel på format:
+[
+  { "fields": { "${typeInfo.columns[0]}": "...", "${typeInfo.columns[1]}": "...", "${typeInfo.columns[2]}": "...", "${typeInfo.columns[3]}": "..." } }
+]`
 }

@@ -1,9 +1,12 @@
 import { useState } from 'react'
-import { Check, Pencil, X } from 'lucide-react'
+import { Check, Pencil, X, Copy, Linkedin } from 'lucide-react'
 
 export default function PostCard({ post, onUpdate, onToggleSelect, isSelected }) {
   const [editing, setEditing] = useState(false)
   const [fields, setFields] = useState(post.fields)
+  const [copied, setCopied] = useState(false)
+
+  const isLinkedin = post.platform === 'linkedin'
 
   function handleSave() {
     onUpdate({ ...post, fields })
@@ -13,6 +16,14 @@ export default function PostCard({ post, onUpdate, onToggleSelect, isSelected })
   function handleCancel() {
     setFields(post.fields)
     setEditing(false)
+  }
+
+  function handleCopyText() {
+    const text = Object.values(fields).join('\n\n')
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
   }
 
   return (
@@ -28,6 +39,11 @@ export default function PostCard({ post, onUpdate, onToggleSelect, isSelected })
             onChange={() => onToggleSelect(post.id)}
             className="w-4 h-4 accent-accent"
           />
+          {isLinkedin && (
+            <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
+              <Linkedin size={12} /> LinkedIn
+            </span>
+          )}
           <span className={`text-xs px-2 py-0.5 rounded-full ${
             post.status === 'reviewed'
               ? 'bg-green-100 text-green-700'
@@ -39,6 +55,15 @@ export default function PostCard({ post, onUpdate, onToggleSelect, isSelected })
           </span>
         </div>
         <div className="flex gap-1">
+          {isLinkedin && !editing && (
+            <button
+              onClick={handleCopyText}
+              className="p-1.5 rounded-lg hover:bg-bg-subtle text-text-muted"
+              title="Kopiera text"
+            >
+              {copied ? <Check size={16} className="text-green-600" /> : <Copy size={16} />}
+            </button>
+          )}
           {editing ? (
             <>
               <button onClick={handleSave} className="p-1.5 rounded-lg hover:bg-green-50 text-green-600">
@@ -65,11 +90,11 @@ export default function PostCard({ post, onUpdate, onToggleSelect, isSelected })
               <textarea
                 value={value}
                 onChange={e => setFields({ ...fields, [key]: e.target.value })}
-                rows={2}
+                rows={isLinkedin ? 4 : 2}
                 className="mt-1 w-full text-sm border border-gray-200 rounded-lg p-2 focus:outline-none focus:border-accent resize-none"
               />
             ) : (
-              <p className="mt-0.5 text-sm leading-relaxed">{value}</p>
+              <p className="mt-0.5 text-sm leading-relaxed whitespace-pre-line">{value}</p>
             )}
           </div>
         ))}
