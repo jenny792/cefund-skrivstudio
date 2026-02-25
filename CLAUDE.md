@@ -4,6 +4,7 @@
 
 ### Vad som fungerar
 - **Källbibliotek** — lägg till källor (text, URL med auto-scrape), sparas permanent i Supabase
+- **Instruktioner** (`/instruktioner`) — skrivriktlinjer (brand voice, tonläge, ord att undvika) som alltid skickas med vid generering utan att behöva väljas. CRUD med inline-redigering, sök. Separerar "hur agenten ska skriva" från "vad den ska skriva om" (källor)
 - **Generera stories** — välj story-typ (7 st), välj källor + tonläge, genererar via Claude API
 - **Generera LinkedIn-inlägg** — välj LinkedIn-typ (8 st), genererar längre inlägg med copy-paste-flöde
 - **LinkedIn copy-paste** — "Kopiera för LinkedIn"-knapp på varje inlägg, kopierar ren text i rätt fältordning
@@ -23,7 +24,7 @@
 
 ## Stack
 - React + Vite + Tailwind CSS
-- Supabase (PostgreSQL) — tabeller: `sources`, `posts`, `exports`
+- Supabase (PostgreSQL) — tabeller: `sources`, `posts`, `exports`, `instructions`
 - Vercel serverless functions (Claude API proxy + URL scrape)
 - GitHub: jenny792/cefund-skrivstudio
 
