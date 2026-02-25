@@ -98,15 +98,15 @@ export default async function handler(req, res) {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-6',
         max_tokens: 4096,
         messages: [{ role: 'user', content: prompt }],
       }),
     })
 
     if (!response.ok) {
-      const error = await response.text()
-      return res.status(response.status).json({ error })
+      const errorText = await response.text()
+      return res.status(response.status).json({ error: `Claude API-fel (${response.status}): ${errorText}` })
     }
 
     const data = await response.json()
