@@ -4,6 +4,7 @@ import Dashboard from './pages/Dashboard'
 import Sources from './pages/Sources'
 import Generate from './pages/Generate'
 import Posts from './pages/Posts'
+import IdeaBank from './pages/IdeaBank'
 
 export default function App() {
   return (
@@ -11,6 +12,7 @@ export default function App() {
       <Route path="/" element={<Layout />}>
         <Route index element={<Dashboard />} />
         <Route path="kallor" element={<Sources />} />
+        <Route path="idebank" element={<IdeaBank />} />
         <Route path="generera" element={<Generate />} />
         <Route path="inlagg" element={<Posts />} />
       </Route>

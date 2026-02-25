@@ -2,12 +2,20 @@
 
 @theme {
   --color-bg: #ffffff;
-  --color-bg-subtle: #f2f5f7;
-  --color-text: #3a3a3a;
-  --color-text-muted: #61636b;
+  --color-bg-subtle: #f5f3f0;
+  --color-text: #2d2d2d;
+  --color-text-muted: #6b7280;
   --color-accent: #d35619;
-  --color-accent-hover: #e46526;
+  --color-accent-hover: #c04b15;
   --color-warm: #cb8b65;
+
+  /* Brand-palett från Instagram */
+  --color-navy: #1c2a3a;
+  --color-navy-light: #253546;
+  --color-brown: #6b4c3b;
+  --color-gold: #c9a96e;
+  --color-sand: #e8e0d4;
+  --color-slate: #7d8a98;
 
   --font-heading: 'Plus Jakarta Sans', sans-serif;
   --font-body: 'Manrope', sans-serif;
@@ -18,9 +26,36 @@ body {
   color: var(--color-text);
   background-color: var(--color-bg);
   margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
   font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* Eleganta fokus-stilar */
+input:focus, textarea:focus, select:focus {
+  border-color: var(--color-warm) !important;
+  box-shadow: 0 0 0 3px rgba(203, 139, 101, 0.1);
+}
+
+/* Subtil scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
 }

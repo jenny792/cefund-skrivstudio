@@ -36,8 +36,8 @@ export default function PostCard({ post, onUpdate, onToggleSelect, isSelected })
   }
 
   return (
-    <div className={`rounded-xl border-2 bg-white transition-all ${
-      isSelected ? 'border-accent shadow-sm' : 'border-gray-200'
+    <div className={`rounded-2xl border bg-white transition-all duration-200 ${
+      isSelected ? 'border-warm shadow-md' : 'border-gray-200 hover:shadow-sm'
     }`}>
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">

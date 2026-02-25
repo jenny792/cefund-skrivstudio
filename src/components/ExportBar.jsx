@@ -20,11 +20,11 @@ export default function ExportBar({ selectedPosts, storyType, platform = 'instag
   }
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-text text-white px-6 py-3 rounded-2xl shadow-lg flex items-center gap-4 z-50">
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-text text-white px-6 py-3 rounded-full shadow-xl flex items-center gap-4 z-50">
       <span className="text-sm">{count} inlägg valda</span>
       <button
         onClick={handleExport}
-        className="flex items-center gap-2 bg-accent hover:bg-accent-hover text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+        className="flex items-center gap-2 bg-accent hover:bg-accent-hover text-white px-4 py-2 rounded-full text-sm font-medium transition-all duration-200"
       >
         <Download size={16} />
         Exportera CSV

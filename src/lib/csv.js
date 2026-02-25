@@ -23,13 +23,19 @@ const LINKEDIN_COLUMNS = {
   'kundberattelse': ['Rubrik', 'Situation', 'Resultat', 'CTA'],
 }
 
+// CSV-kolumner per nyhetsbrev-typ
+const NEWSLETTER_COLUMNS = {
+  'allman': ['Ämnesrad', 'Hook', 'Huvudinnehåll', 'Tips', 'CTA'],
+  'kund': ['Ämnesrad', 'Hook', 'Djupanalys', 'Case/Insikt', 'CTA'],
+}
+
 export function getColumnsForType(storyType, platform = 'instagram') {
-  const map = platform === 'linkedin' ? LINKEDIN_COLUMNS : STORY_COLUMNS
+  const map = platform === 'newsletter' ? NEWSLETTER_COLUMNS : platform === 'linkedin' ? LINKEDIN_COLUMNS : STORY_COLUMNS
   return map[storyType] || []
 }
 
 export function exportPostsToCSV(posts, storyType, platform = 'instagram') {
-  const map = platform === 'linkedin' ? LINKEDIN_COLUMNS : STORY_COLUMNS
+  const map = platform === 'newsletter' ? NEWSLETTER_COLUMNS : platform === 'linkedin' ? LINKEDIN_COLUMNS : STORY_COLUMNS
   const columns = map[storyType]
   if (!columns) return null
 
@@ -52,4 +58,4 @@ export function exportPostsToCSV(posts, storyType, platform = 'instagram') {
   URL.revokeObjectURL(url)
 }
 
-export { STORY_COLUMNS, LINKEDIN_COLUMNS }
+export { STORY_COLUMNS, LINKEDIN_COLUMNS, NEWSLETTER_COLUMNS }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Sparkles, ArrowLeft, ArrowRight, Loader2, Library, Linkedin, Instagram } from 'lucide-react'
+import { Sparkles, ArrowLeft, ArrowRight, Loader2, Library, Linkedin, Instagram, Mail } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import StoryTypeCard from '../components/StoryTypeCard'
 import PostCard from '../components/PostCard'
@@ -7,6 +7,7 @@ import PostPreview from '../components/PostPreview'
 import ExportBar from '../components/ExportBar'
 import { STORY_TYPES, TONES } from '../lib/storyTypes'
 import { LINKEDIN_TYPES, LINKEDIN_TONES } from '../lib/linkedinTypes'
+import { NEWSLETTER_TYPES, NEWSLETTER_TONES } from '../lib/newsletterTypes'
 import { generatePosts } from '../lib/claude'
 import { getSources } from '../lib/sources'
 import { savePosts, updatePost as updatePostInDb } from '../lib/posts'
@@ -14,6 +15,7 @@ import { savePosts, updatePost as updatePostInDb } from '../lib/posts'
 const PLATFORMS = [
   { id: 'instagram', name: 'Instagram Stories', icon: Instagram, description: 'Korta stories för Instagram' },
   { id: 'linkedin', name: 'LinkedIn', icon: Linkedin, description: 'Längre inlägg för LinkedIn' },
+  { id: 'newsletter', name: 'Nyhetsbrev', icon: Mail, description: 'Nyhetsbrev för email' },
 ]
 
 export default function Generate() {
@@ -33,9 +35,10 @@ export default function Generate() {
   const [error, setError] = useState(null)
 
   const isLinkedin = platform === 'linkedin'
-  const types = isLinkedin ? LINKEDIN_TYPES : STORY_TYPES
-  const tones = isLinkedin ? LINKEDIN_TONES : TONES
-  const postCount = isLinkedin ? 3 : 7
+  const isNewsletter = platform === 'newsletter'
+  const types = isNewsletter ? NEWSLETTER_TYPES : isLinkedin ? LINKEDIN_TYPES : STORY_TYPES
+  const tones = isNewsletter ? NEWSLETTER_TONES : isLinkedin ? LINKEDIN_TONES : TONES
+  const postCount = isNewsletter ? 1 : isLinkedin ? 3 : 7
   const storyType = types.find(t => t.id === selectedType)
 
   function handlePlatformSelect(id) {
@@ -130,7 +133,7 @@ export default function Generate() {
       {/* Steg 1: Välj plattform */}
       {step === 1 && (
         <div>
-          <div className="grid grid-cols-2 gap-4 max-w-lg">
+          <div className="grid grid-cols-3 gap-4 max-w-2xl">
             {PLATFORMS.map(p => {
               const Icon = p.icon
               return (
@@ -156,7 +159,7 @@ export default function Generate() {
             <button
               onClick={() => setStep(2)}
               disabled={!platform}
-              className="flex items-center gap-2 bg-accent hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed text-white px-5 py-2.5 rounded-xl text-sm font-medium transition-colors"
+              className="flex items-center gap-2 bg-accent hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed text-white px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200"
             >
               Nästa <ArrowRight size={16} />
             </button>
@@ -187,7 +190,7 @@ export default function Generate() {
             <button
               onClick={() => setStep(3)}
               disabled={!selectedType}
-              className="flex items-center gap-2 bg-accent hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed text-white px-5 py-2.5 rounded-xl text-sm font-medium transition-colors"
+              className="flex items-center gap-2 bg-accent hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed text-white px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200"
             >
               Nästa <ArrowRight size={16} />
             </button>
@@ -261,7 +264,7 @@ export default function Generate() {
             <button
               onClick={() => setStep(4)}
               disabled={selectedSources.length === 0}
-              className="flex items-center gap-2 bg-accent hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed text-white px-5 py-2.5 rounded-xl text-sm font-medium transition-colors"
+              className="flex items-center gap-2 bg-accent hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed text-white px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200"
             >
               Nästa <ArrowRight size={16} />
             </button>
@@ -282,7 +285,7 @@ export default function Generate() {
             <dl className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <dt className="text-text-muted">Plattform</dt>
-                <dd className="font-medium">{isLinkedin ? 'LinkedIn' : 'Instagram Stories'}</dd>
+                <dd className="font-medium">{isNewsletter ? 'Nyhetsbrev' : isLinkedin ? 'LinkedIn' : 'Instagram Stories'}</dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-text-muted">Inläggstyp</dt>
@@ -313,12 +316,12 @@ export default function Generate() {
             <button
               onClick={handleGenerate}
               disabled={loading}
-              className="flex items-center gap-2 bg-accent hover:bg-accent-hover disabled:opacity-60 text-white px-6 py-2.5 rounded-xl text-sm font-medium transition-colors"
+              className="flex items-center gap-2 bg-accent hover:bg-accent-hover disabled:opacity-60 text-white px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-200"
             >
               {loading ? (
                 <><Loader2 size={16} className="animate-spin" /> Genererar...</>
               ) : (
-                <><Sparkles size={16} /> Generera {postCount} {isLinkedin ? 'inlägg' : 'stories'}</>
+                <><Sparkles size={16} /> Generera {postCount} {isNewsletter ? 'nyhetsbrev' : isLinkedin ? 'inlägg' : 'stories'}</>
               )}
             </button>
           </div>
@@ -335,7 +338,7 @@ export default function Generate() {
           )}
 
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg">{posts.length} genererade {isLinkedin ? 'LinkedIn-inlägg' : 'inlägg'}</h2>
+            <h2 className="text-lg">{posts.length} genererade {isNewsletter ? 'nyhetsbrev' : isLinkedin ? 'LinkedIn-inlägg' : 'inlägg'}</h2>
             <button
               onClick={() => {
                 setStep(1)
@@ -358,6 +361,16 @@ export default function Generate() {
               <Linkedin size={20} className="text-[#0A66C2] shrink-0" />
               <p className="text-sm text-blue-800">
                 Redigera inlägget om du vill, kopiera texten och klistra in på LinkedIn.
+              </p>
+            </div>
+          )}
+
+          {/* Nyhetsbrev info */}
+          {isNewsletter && (
+            <div className="mb-6 p-4 rounded-xl bg-orange-50 border border-orange-100 flex items-center gap-3">
+              <Mail size={20} className="text-accent shrink-0" />
+              <p className="text-sm text-orange-800">
+                Redigera nyhetsbrevet om du vill, kopiera texten och klistra in i ditt email-verktyg.
               </p>
             </div>
           )}

@@ -4,10 +4,10 @@ export default function StoryTypeCard({ storyType, selected, onSelect }) {
   return (
     <button
       onClick={() => onSelect(storyType.id)}
-      className={`text-left p-4 rounded-xl border-2 transition-all ${
+      className={`text-left p-4 rounded-2xl border transition-all duration-200 ${
         isSelected
-          ? 'border-accent bg-accent/5 shadow-sm'
-          : 'border-gray-200 hover:border-gray-300 bg-white'
+          ? 'border-warm bg-warm/5 shadow-md'
+          : 'border-gray-200 hover:border-warm/30 hover:shadow-sm bg-white'
       }`}
     >
       <div className="text-2xl mb-2">{storyType.icon}</div>

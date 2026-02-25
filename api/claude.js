@@ -22,6 +22,11 @@ const LINKEDIN_TYPE_MAP = {
   'kundberattelse': { name: 'Kundberättelse', columns: ['Rubrik', 'Situation', 'Resultat', 'CTA'] },
 }
 
+const NEWSLETTER_TYPE_MAP = {
+  'allman': { name: 'Allmänt nyhetsbrev', columns: ['Ämnesrad', 'Hook', 'Huvudinnehåll', 'Tips', 'CTA'] },
+  'kund': { name: 'Kundnyhetsbrev', columns: ['Ämnesrad', 'Hook', 'Djupanalys', 'Case/Insikt', 'CTA'] },
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Metoden stöds ej' })
@@ -34,7 +39,7 @@ export default async function handler(req, res) {
 
   const { storyType, sources, tone, platform = 'instagram' } = req.body
 
-  const typeMap = platform === 'linkedin' ? LINKEDIN_TYPE_MAP : STORY_TYPE_MAP
+  const typeMap = platform === 'newsletter' ? NEWSLETTER_TYPE_MAP : platform === 'linkedin' ? LINKEDIN_TYPE_MAP : STORY_TYPE_MAP
   const typeInfo = typeMap[storyType]
 
   if (!typeInfo) {
@@ -77,8 +82,10 @@ export default async function handler(req, res) {
     })
   )
 
-  const postCount = platform === 'linkedin' ? 3 : 7
-  const prompt = platform === 'linkedin'
+  const postCount = platform === 'newsletter' ? 1 : platform === 'linkedin' ? 3 : 7
+  const prompt = platform === 'newsletter'
+    ? buildNewsletterPrompt(typeInfo, tone, resolvedSources, postCount)
+    : platform === 'linkedin'
     ? buildLinkedInPrompt(typeInfo, tone, resolvedSources, postCount)
     : buildInstagramPrompt(typeInfo, tone, resolvedSources, postCount)
 
@@ -185,5 +192,37 @@ Svara ENBART med en JSON-array. Varje objekt ska ha ett "fields"-objekt med nyck
 Exempel på format:
 [
   { "fields": { "${typeInfo.columns[0]}": "...", "${typeInfo.columns[1]}": "...", "${typeInfo.columns[2]}": "...", "${typeInfo.columns[3]}": "..." } }
+]`
+}
+
+function buildNewsletterPrompt(typeInfo, tone, sources, count) {
+  return `Du skriver nyhetsbrev för Cefund. Cecilia är grundaren.
+
+VIKTIGT: Använd ENBART information som finns i källorna nedan. Hitta INTE på fakta, siffror, tjänster eller påståenden som inte finns i källmaterialet. Allt innehåll måste kunna spåras tillbaka till en specifik källa.
+
+Skapa ${count} komplett nyhetsbrev av typen "${typeInfo.name}".
+
+Varje nyhetsbrev ska ha dessa fält: ${typeInfo.columns.join(', ')}
+
+FORMAT-KRAV FÖR NYHETSBREV:
+- Ämnesrad: Kort, lockande, max 60 tecken — ska få mottagaren att öppna mailet
+- Hook: 1-2 meningar som drar in läsaren direkt (50-100 ord)
+- Huvudinnehåll/Djupanalys: Det centrala innehållet (300-600 ord), välskrivet och engagerande
+- Tips/Case/Insikt: Konkret och värdefullt (100-200 ord)
+- CTA: Tydlig uppmaning till handling — vad ska läsaren göra härnäst?
+- Använd radbrytningar och stycken för läsbarhet
+- Email-vänlig ton — personlig men professionell
+- Skriv som att du pratar direkt till mottagaren
+
+Tonläge: ${tone || 'professionell'}
+
+Här är källorna — använd ENBART dessa:
+${sources.map((s, i) => `--- Källa ${i + 1} ---\n${s}`).join('\n\n')}
+
+Svara ENBART med en JSON-array. Varje objekt ska ha ett "fields"-objekt med nycklar som matchar fältnamnen ovan.
+
+Exempel på format:
+[
+  { "fields": { "${typeInfo.columns[0]}": "...", "${typeInfo.columns[1]}": "...", "${typeInfo.columns[2]}": "...", "${typeInfo.columns[3]}": "...", "${typeInfo.columns[4]}": "..." } }
 ]`
 }

@@ -26,45 +26,51 @@ export default function Dashboard() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-2xl mb-2">Välkommen till Skrivstudion</h1>
-        <p className="text-text-muted">Generera Instagram-innehåll baserat på Cefunds råmaterial.</p>
+      <div className="mb-10">
+        <h1 className="text-2xl mb-1">Välkommen till Skrivstudion</h1>
+        <p className="text-text-muted text-sm">Generera innehåll baserat på Cefunds råmaterial.</p>
       </div>
 
       {/* Snabbåtgärder */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-12">
         <Link
           to="/generera"
-          className="group bg-accent/5 border-2 border-accent/20 rounded-xl p-6 hover:border-accent transition-colors"
+          className="group bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-md hover:border-warm/40 transition-all duration-200"
         >
-          <Sparkles size={24} className="text-accent mb-3" />
-          <h3 className="font-heading font-semibold mb-1">Generera stories</h3>
-          <p className="text-sm text-text-muted mb-3">Skapa nya Instagram-inlägg med AI</p>
-          <span className="flex items-center gap-1 text-sm text-accent font-medium group-hover:gap-2 transition-all">
+          <div className="w-10 h-10 rounded-xl bg-accent/8 flex items-center justify-center mb-4">
+            <Sparkles size={20} className="text-accent" />
+          </div>
+          <h3 className="font-heading font-semibold mb-1">Generera innehåll</h3>
+          <p className="text-sm text-text-muted mb-4">Skapa nya inlägg med AI</p>
+          <span className="flex items-center gap-1.5 text-sm text-accent font-medium group-hover:gap-2.5 transition-all">
             Kom igång <ArrowRight size={14} />
           </span>
         </Link>
 
         <Link
           to="/kallor"
-          className="group bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-gray-300 transition-colors"
+          className="group bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-md hover:border-warm/40 transition-all duration-200"
         >
-          <Library size={24} className="text-warm mb-3" />
+          <div className="w-10 h-10 rounded-xl bg-warm/10 flex items-center justify-center mb-4">
+            <Library size={20} className="text-warm" />
+          </div>
           <h3 className="font-heading font-semibold mb-1">Källbibliotek</h3>
-          <p className="text-sm text-text-muted mb-3">Hantera råmaterial och underlag</p>
-          <span className="flex items-center gap-1 text-sm text-text-muted font-medium group-hover:gap-2 transition-all">
+          <p className="text-sm text-text-muted mb-4">Hantera råmaterial och underlag</p>
+          <span className="flex items-center gap-1.5 text-sm text-text-muted font-medium group-hover:text-warm group-hover:gap-2.5 transition-all">
             Öppna <ArrowRight size={14} />
           </span>
         </Link>
 
         <Link
           to="/inlagg"
-          className="group bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-gray-300 transition-colors"
+          className="group bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-md hover:border-warm/40 transition-all duration-200"
         >
-          <FileText size={24} className="text-warm mb-3" />
+          <div className="w-10 h-10 rounded-xl bg-warm/10 flex items-center justify-center mb-4">
+            <FileText size={20} className="text-warm" />
+          </div>
           <h3 className="font-heading font-semibold mb-1">Inlägg</h3>
-          <p className="text-sm text-text-muted mb-3">Se och hantera genererade inlägg</p>
-          <span className="flex items-center gap-1 text-sm text-text-muted font-medium group-hover:gap-2 transition-all">
+          <p className="text-sm text-text-muted mb-4">Se och hantera genererade inlägg</p>
+          <span className="flex items-center gap-1.5 text-sm text-text-muted font-medium group-hover:text-warm group-hover:gap-2.5 transition-all">
             Öppna <ArrowRight size={14} />
           </span>
         </Link>
