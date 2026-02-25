@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Check, Pencil, X, Copy, Linkedin } from 'lucide-react'
-import { isLinkedInType } from '../lib/linkedinTypes'
+import { isLinkedInType, LINKEDIN_TYPES } from '../lib/linkedinTypes'
+import { isNewsletterType } from '../lib/newsletterTypes'
 
 export default function PostCard({ post, onUpdate, onToggleSelect, isSelected }) {
   const [editing, setEditing] = useState(false)
@@ -8,6 +9,7 @@ export default function PostCard({ post, onUpdate, onToggleSelect, isSelected })
   const [copied, setCopied] = useState(false)
 
   const isLinkedin = isLinkedInType(post.story_type)
+  const isNewsletter = isNewsletterType(post.story_type)
 
   function handleSave() {
     onUpdate({ ...post, fields })
@@ -20,8 +22,13 @@ export default function PostCard({ post, onUpdate, onToggleSelect, isSelected })
   }
 
   function handleCopyText() {
-    // Ren text utan fältnamn — bara innehållet med radbrytningar
-    const text = Object.values(fields).filter(Boolean).join('\n\n')
+    // Använd columns-ordningen så att Hook kommer först, CTA sist
+    const typeInfo = LINKEDIN_TYPES.find(t => t.id === post.story_type)
+    const orderedKeys = typeInfo ? typeInfo.columns : Object.keys(fields)
+    const text = orderedKeys
+      .map(key => fields[key])
+      .filter(Boolean)
+      .join('\n\n')
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
@@ -44,6 +51,11 @@ export default function PostCard({ post, onUpdate, onToggleSelect, isSelected })
           {isLinkedin && (
             <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
               <Linkedin size={12} /> LinkedIn
+            </span>
+          )}
+          {isNewsletter && (
+            <span className="text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
+              Nyhetsbrev
             </span>
           )}
           <span className={`text-xs px-2 py-0.5 rounded-full ${
@@ -74,16 +86,20 @@ export default function PostCard({ post, onUpdate, onToggleSelect, isSelected })
         </div>
       </div>
 
-      {/* Fält */}
+      {/* Fält — visa i columns-ordning */}
       <div className="p-4 space-y-3">
-        {Object.entries(fields).map(([key, value]) => (
+        {(() => {
+          const typeInfo = LINKEDIN_TYPES.find(t => t.id === post.story_type)
+          const keys = typeInfo ? typeInfo.columns.filter(k => k in fields) : Object.keys(fields)
+          return keys.map(key => [key, fields[key]])
+        })().map(([key, value]) => (
           <div key={key}>
             <label className="text-xs font-medium text-text-muted uppercase tracking-wide">{key}</label>
             {editing ? (
               <textarea
                 value={value}
                 onChange={e => setFields({ ...fields, [key]: e.target.value })}
-                rows={isLinkedin ? 4 : 2}
+                rows={isNewsletter ? 6 : isLinkedin ? 4 : 2}
                 className="mt-1 w-full text-sm border border-gray-200 rounded-lg p-2 focus:outline-none focus:border-accent resize-none"
               />
             ) : (
@@ -93,21 +109,21 @@ export default function PostCard({ post, onUpdate, onToggleSelect, isSelected })
         ))}
       </div>
 
-      {/* Kopiera-knapp för LinkedIn */}
-      {isLinkedin && !editing && (
+      {/* Kopiera-knapp för LinkedIn/Nyhetsbrev */}
+      {(isLinkedin || isNewsletter) && !editing && (
         <div className="px-4 pb-4">
           <button
             onClick={handleCopyText}
             className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all ${
               copied
                 ? 'bg-green-50 text-green-700 border border-green-200'
-                : 'bg-[#0A66C2] hover:bg-[#004182] text-white'
+                : isNewsletter ? 'bg-accent hover:bg-accent-hover text-white' : 'bg-[#0A66C2] hover:bg-[#004182] text-white'
             }`}
           >
             {copied ? (
               <><Check size={16} /> Kopierat!</>
             ) : (
-              <><Copy size={16} /> Kopiera för LinkedIn</>
+              <><Copy size={16} /> {isNewsletter ? 'Kopiera nyhetsbrev' : 'Kopiera för LinkedIn'}</>
             )}
           </button>
         </div>
