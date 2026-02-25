@@ -37,7 +37,7 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'ANTHROPIC_API_KEY saknas' })
   }
 
-  const { storyType, sources, tone, platform = 'instagram' } = req.body
+  const { storyType, sources, tone, platform = 'instagram', instructions = [] } = req.body
 
   const typeMap = platform === 'newsletter' ? NEWSLETTER_TYPE_MAP : platform === 'linkedin' ? LINKEDIN_TYPE_MAP : STORY_TYPE_MAP
   const typeInfo = typeMap[storyType]
@@ -83,11 +83,17 @@ export default async function handler(req, res) {
   )
 
   const postCount = platform === 'newsletter' ? 1 : platform === 'linkedin' ? 3 : 7
+
+  // Bygg instruktionssektion om det finns instruktioner
+  const instructionsBlock = instructions.length > 0
+    ? `INSTRUKTIONER FÖR SKRIVANDE:\n${instructions.map((inst, i) => `${i + 1}. ${inst}`).join('\n')}\n\n`
+    : ''
+
   const prompt = platform === 'newsletter'
-    ? buildNewsletterPrompt(typeInfo, tone, resolvedSources, postCount)
+    ? buildNewsletterPrompt(typeInfo, tone, resolvedSources, postCount, instructionsBlock)
     : platform === 'linkedin'
-    ? buildLinkedInPrompt(typeInfo, tone, resolvedSources, postCount)
-    : buildInstagramPrompt(typeInfo, tone, resolvedSources, postCount)
+    ? buildLinkedInPrompt(typeInfo, tone, resolvedSources, postCount, instructionsBlock)
+    : buildInstagramPrompt(typeInfo, tone, resolvedSources, postCount, instructionsBlock)
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -142,10 +148,10 @@ export default async function handler(req, res) {
   }
 }
 
-function buildInstagramPrompt(typeInfo, tone, sources, count) {
+function buildInstagramPrompt(typeInfo, tone, sources, count, instructionsBlock) {
   return `Du skriver Instagram Stories-innehåll för Cefund. Cecilia är grundaren.
 
-VIKTIGT: Använd ENBART information som finns i källorna nedan. Hitta INTE på fakta, siffror, tjänster eller påståenden som inte finns i källmaterialet. Allt innehåll måste kunna spåras tillbaka till en specifik källa. Om källorna inte innehåller tillräckligt med material för ${count} unika inlägg, skapa färre men håll kvaliteten.
+${instructionsBlock}VIKTIGT: Använd ENBART information som finns i källorna nedan. Hitta INTE på fakta, siffror, tjänster eller påståenden som inte finns i källmaterialet. Allt innehåll måste kunna spåras tillbaka till en specifik källa. Om källorna inte innehåller tillräckligt med material för ${count} unika inlägg, skapa färre men håll kvaliteten.
 
 Skapa upp till ${count} inlägg av typen "${typeInfo.name}".
 
@@ -164,10 +170,10 @@ Exempel på format:
 ]`
 }
 
-function buildLinkedInPrompt(typeInfo, tone, sources, count) {
+function buildLinkedInPrompt(typeInfo, tone, sources, count, instructionsBlock) {
   return `Du skriver LinkedIn-inlägg för Cefund. Cecilia är grundaren.
 
-VIKTIGT: Använd ENBART information som finns i källorna nedan. Hitta INTE på fakta, siffror, tjänster eller påståenden som inte finns i källmaterialet. Allt innehåll måste kunna spåras tillbaka till en specifik källa. Om källorna inte innehåller tillräckligt med material för ${count} unika inlägg, skapa färre men håll kvaliteten.
+${instructionsBlock}VIKTIGT: Använd ENBART information som finns i källorna nedan. Hitta INTE på fakta, siffror, tjänster eller påståenden som inte finns i källmaterialet. Allt innehåll måste kunna spåras tillbaka till en specifik källa. Om källorna inte innehåller tillräckligt med material för ${count} unika inlägg, skapa färre men håll kvaliteten.
 
 Skapa upp till ${count} LinkedIn-inlägg av typen "${typeInfo.name}".
 
@@ -195,10 +201,10 @@ Exempel på format:
 ]`
 }
 
-function buildNewsletterPrompt(typeInfo, tone, sources, count) {
+function buildNewsletterPrompt(typeInfo, tone, sources, count, instructionsBlock) {
   return `Du skriver nyhetsbrev för Cefund. Cecilia är grundaren.
 
-VIKTIGT: Använd ENBART information som finns i källorna nedan. Hitta INTE på fakta, siffror, tjänster eller påståenden som inte finns i källmaterialet. Allt innehåll måste kunna spåras tillbaka till en specifik källa.
+${instructionsBlock}VIKTIGT: Använd ENBART information som finns i källorna nedan. Hitta INTE på fakta, siffror, tjänster eller påståenden som inte finns i källmaterialet. Allt innehåll måste kunna spåras tillbaka till en specifik källa.
 
 Skapa ${count} komplett nyhetsbrev av typen "${typeInfo.name}".
 

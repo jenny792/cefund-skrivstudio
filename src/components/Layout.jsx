@@ -1,9 +1,10 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { Home, FileText, Sparkles, Library, Lightbulb } from 'lucide-react'
+import { Home, FileText, Sparkles, Library, Lightbulb, BookOpen } from 'lucide-react'
 
 const navItems = [
   { to: '/', icon: Home, label: 'Dashboard' },
   { to: '/kallor', icon: Library, label: 'Källbibliotek' },
+  { to: '/instruktioner', icon: BookOpen, label: 'Instruktioner' },
   { to: '/idebank', icon: Lightbulb, label: 'Idébank' },
   { to: '/generera', icon: Sparkles, label: 'Generera' },
   { to: '/inlagg', icon: FileText, label: 'Inlägg' },

@@ -10,6 +10,7 @@ import { LINKEDIN_TYPES, LINKEDIN_TONES } from '../lib/linkedinTypes'
 import { NEWSLETTER_TYPES, NEWSLETTER_TONES } from '../lib/newsletterTypes'
 import { generatePosts } from '../lib/claude'
 import { getSources } from '../lib/sources'
+import { getInstructions } from '../lib/instructions'
 import { savePosts, updatePost as updatePostInDb } from '../lib/posts'
 
 const PLATFORMS = [
@@ -20,9 +21,11 @@ const PLATFORMS = [
 
 export default function Generate() {
   const [sources, setSources] = useState([])
+  const [instructions, setInstructions] = useState([])
 
   useEffect(() => {
     getSources().then(setSources)
+    getInstructions().then(setInstructions)
   }, [])
   const [step, setStep] = useState(1)
   const [platform, setPlatform] = useState(null)
@@ -77,11 +80,14 @@ export default function Generate() {
         .filter(s => selectedSources.includes(s.id))
         .map(s => s.content)
 
+      const instructionsContent = instructions.map(i => `${i.title}: ${i.content}`)
+
       const result = await generatePosts({
         storyType: selectedType,
         sources: sourcesContent,
         tone: selectedTone,
         platform,
+        instructions: instructionsContent,
       })
 
       const generatedPosts = result.posts || []
