@@ -125,7 +125,7 @@ export default function Generate() {
       <div className="flex gap-2 mb-8">
         {Array.from({ length: totalSteps }, (_, i) => i + 1).map(s => (
           <div key={s} className={`h-1 flex-1 rounded-full ${
-            s <= step ? 'bg-accent' : 'bg-gray-200'
+            s <= step ? 'bg-gold' : 'bg-gray-200'
           }`} />
         ))}
       </div>
