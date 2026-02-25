@@ -37,8 +37,8 @@ export default function Dashboard() {
           to="/generera"
           className="group bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-md hover:border-warm/40 transition-all duration-200"
         >
-          <div className="w-10 h-10 rounded-xl bg-accent/8 flex items-center justify-center mb-4">
-            <Sparkles size={20} className="text-accent" />
+          <div className="w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center mb-4">
+            <Sparkles size={20} className="text-gold" />
           </div>
           <h3 className="font-heading font-semibold mb-1">Generera innehåll</h3>
           <p className="text-sm text-text-muted mb-4">Skapa nya inlägg med AI</p>
@@ -51,8 +51,8 @@ export default function Dashboard() {
           to="/kallor"
           className="group bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-md hover:border-warm/40 transition-all duration-200"
         >
-          <div className="w-10 h-10 rounded-xl bg-warm/10 flex items-center justify-center mb-4">
-            <Library size={20} className="text-warm" />
+          <div className="w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center mb-4">
+            <Library size={20} className="text-gold" />
           </div>
           <h3 className="font-heading font-semibold mb-1">Källbibliotek</h3>
           <p className="text-sm text-text-muted mb-4">Hantera råmaterial och underlag</p>
@@ -65,8 +65,8 @@ export default function Dashboard() {
           to="/inlagg"
           className="group bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-md hover:border-warm/40 transition-all duration-200"
         >
-          <div className="w-10 h-10 rounded-xl bg-warm/10 flex items-center justify-center mb-4">
-            <FileText size={20} className="text-warm" />
+          <div className="w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center mb-4">
+            <FileText size={20} className="text-gold" />
           </div>
           <h3 className="font-heading font-semibold mb-1">Inlägg</h3>
           <p className="text-sm text-text-muted mb-4">Se och hantera genererade inlägg</p>

@@ -39,7 +39,7 @@ export default function Layout() {
                 }`
               }
             >
-              <Icon size={18} />
+              <Icon size={18} className="text-gold" />
               {label}
             </NavLink>
           ))}

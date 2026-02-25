@@ -117,7 +117,7 @@ export default function PostCard({ post, onUpdate, onToggleSelect, isSelected })
             className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all ${
               copied
                 ? 'bg-green-50 text-green-700 border border-green-200'
-                : isNewsletter ? 'bg-accent hover:bg-accent-hover text-white' : 'bg-[#0A66C2] hover:bg-[#004182] text-white'
+                : 'bg-navy hover:bg-navy-light text-white'
             }`}
           >
             {copied ? (
