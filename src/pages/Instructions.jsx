@@ -69,7 +69,7 @@ export default function Instructions() {
           </p>
         </div>
         <button
-          onClick={() => { console.log('CLICK', showAdd); setShowAdd(!showAdd) }}
+          onClick={() => setShowAdd(!showAdd)}
           className="flex items-center gap-2 bg-accent hover:bg-accent-hover text-white px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200"
         >
           <Plus size={16} />
