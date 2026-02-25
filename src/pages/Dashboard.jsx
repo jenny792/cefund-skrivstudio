@@ -27,8 +27,8 @@ export default function Dashboard() {
   return (
     <div>
       <div className="mb-10">
-        <h1 className="text-2xl mb-1">Välkommen till Skrivstudion</h1>
-        <p className="text-text-muted text-sm">Generera innehåll baserat på Cefunds råmaterial.</p>
+        <h1 className="text-2xl mb-1">Välkommen till Cefund Studio</h1>
+        <p className="text-text-muted text-sm">Internal team workspace</p>
       </div>
 
       {/* Snabbåtgärder */}
