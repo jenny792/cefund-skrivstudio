@@ -20,7 +20,8 @@ export default function PostCard({ post, onUpdate, onToggleSelect, isSelected })
   }
 
   function handleCopyText() {
-    const text = Object.values(fields).join('\n\n')
+    // Ren text utan fältnamn — bara innehållet med radbrytningar
+    const text = Object.values(fields).filter(Boolean).join('\n\n')
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
@@ -56,15 +57,6 @@ export default function PostCard({ post, onUpdate, onToggleSelect, isSelected })
           </span>
         </div>
         <div className="flex gap-1">
-          {isLinkedin && !editing && (
-            <button
-              onClick={handleCopyText}
-              className="p-1.5 rounded-lg hover:bg-bg-subtle text-text-muted"
-              title="Kopiera text"
-            >
-              {copied ? <Check size={16} className="text-green-600" /> : <Copy size={16} />}
-            </button>
-          )}
           {editing ? (
             <>
               <button onClick={handleSave} className="p-1.5 rounded-lg hover:bg-green-50 text-green-600">
@@ -100,6 +92,26 @@ export default function PostCard({ post, onUpdate, onToggleSelect, isSelected })
           </div>
         ))}
       </div>
+
+      {/* Kopiera-knapp för LinkedIn */}
+      {isLinkedin && !editing && (
+        <div className="px-4 pb-4">
+          <button
+            onClick={handleCopyText}
+            className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all ${
+              copied
+                ? 'bg-green-50 text-green-700 border border-green-200'
+                : 'bg-[#0A66C2] hover:bg-[#004182] text-white'
+            }`}
+          >
+            {copied ? (
+              <><Check size={16} /> Kopierat!</>
+            ) : (
+              <><Copy size={16} /> Kopiera för LinkedIn</>
+            )}
+          </button>
+        </div>
+      )}
     </div>
   )
 }

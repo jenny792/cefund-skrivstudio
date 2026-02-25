@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Sparkles, ArrowLeft, ArrowRight, Loader2, Library, Linkedin, Instagram, Clock } from 'lucide-react'
+import { Sparkles, ArrowLeft, ArrowRight, Loader2, Library, Linkedin, Instagram } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import StoryTypeCard from '../components/StoryTypeCard'
 import PostCard from '../components/PostCard'
@@ -10,7 +10,6 @@ import { LINKEDIN_TYPES, LINKEDIN_TONES } from '../lib/linkedinTypes'
 import { generatePosts } from '../lib/claude'
 import { getSources } from '../lib/sources'
 import { savePosts, updatePost as updatePostInDb } from '../lib/posts'
-import { getLinkedInStatus, publishToLinkedIn, startLinkedInAuth } from '../lib/linkedin'
 
 const PLATFORMS = [
   { id: 'instagram', name: 'Instagram Stories', icon: Instagram, description: 'Korta stories för Instagram' },
@@ -32,17 +31,6 @@ export default function Generate() {
   const [selectedPostIds, setSelectedPostIds] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-  const [linkedinStatus, setLinkedinStatus] = useState({ connected: false })
-  const [publishing, setPublishing] = useState(null)
-  const [schedulingPostId, setSchedulingPostId] = useState(null)
-  const [scheduleDate, setScheduleDate] = useState('')
-
-  // Kolla LinkedIn-status vid mount
-  useEffect(() => {
-    getLinkedInStatus()
-      .then(setLinkedinStatus)
-      .catch(() => setLinkedinStatus({ connected: false }))
-  }, [])
 
   const isLinkedin = platform === 'linkedin'
   const types = isLinkedin ? LINKEDIN_TYPES : STORY_TYPES
@@ -74,38 +62,6 @@ export default function Generate() {
       await updatePostInDb(updated.id, { fields: updated.fields })
     } catch (err) {
       console.error('Kunde inte spara redigering:', err)
-    }
-  }
-
-  async function handleSchedule(post) {
-    if (!scheduleDate) return
-    try {
-      await updatePostInDb(post.id, {
-        status: 'scheduled',
-        scheduled_at: new Date(scheduleDate).toISOString(),
-      })
-      setPosts(prev => prev.map(p =>
-        p.id === post.id ? { ...p, status: 'scheduled', scheduled_at: scheduleDate } : p
-      ))
-      setSchedulingPostId(null)
-      setScheduleDate('')
-    } catch (err) {
-      setError(`Kunde inte schemalägga: ${err.message}`)
-    }
-  }
-
-  async function handlePublish(post) {
-    setPublishing(post.id)
-    try {
-      const text = Object.values(post.fields).join('\n\n')
-      await publishToLinkedIn(post.id, text)
-      setPosts(prev => prev.map(p =>
-        p.id === post.id ? { ...p, status: 'published' } : p
-      ))
-    } catch (err) {
-      setError(`Kunde inte publicera: ${err.message}`)
-    } finally {
-      setPublishing(null)
     }
   }
 
@@ -396,84 +352,25 @@ export default function Generate() {
             </button>
           </div>
 
-          {/* LinkedIn publicering */}
+          {/* LinkedIn info */}
           {isLinkedin && (
-            <div className="mb-6 p-4 rounded-xl bg-bg-subtle">
-              {linkedinStatus.connected ? (
-                <p className="text-sm text-green-700 flex items-center gap-2">
-                  <Linkedin size={16} /> LinkedIn-konto kopplat — du kan publicera direkt
-                </p>
-              ) : (
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-text-muted">Koppla ditt LinkedIn-konto för att publicera direkt</p>
-                  <button
-                    onClick={startLinkedInAuth}
-                    className="flex items-center gap-2 bg-[#0A66C2] hover:bg-[#004182] text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
-                  >
-                    <Linkedin size={16} /> Koppla LinkedIn
-                  </button>
-                </div>
-              )}
+            <div className="mb-6 p-4 rounded-xl bg-blue-50 border border-blue-100 flex items-center gap-3">
+              <Linkedin size={20} className="text-[#0A66C2] shrink-0" />
+              <p className="text-sm text-blue-800">
+                Redigera inlägget om du vill, kopiera texten och klistra in på LinkedIn.
+              </p>
             </div>
           )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {posts.map(post => (
-              <div key={post.id}>
-                <PostCard
-                  post={post}
-                  onUpdate={handleUpdatePost}
-                  onToggleSelect={togglePostSelect}
-                  isSelected={selectedPostIds.includes(post.id)}
-                />
-                {isLinkedin && linkedinStatus.connected && post.status !== 'published' && post.status !== 'scheduled' && (
-                  <div className="mt-2 flex gap-2">
-                    <button
-                      onClick={() => handlePublish(post)}
-                      disabled={publishing === post.id}
-                      className="flex-1 flex items-center justify-center gap-2 bg-[#0A66C2] hover:bg-[#004182] disabled:opacity-60 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
-                    >
-                      {publishing === post.id ? (
-                        <><Loader2 size={16} className="animate-spin" /> Publicerar...</>
-                      ) : (
-                        <><Linkedin size={16} /> Publicera nu</>
-                      )}
-                    </button>
-                    <button
-                      onClick={() => setSchedulingPostId(schedulingPostId === post.id ? null : post.id)}
-                      className="flex items-center gap-2 border border-gray-200 hover:border-gray-300 px-4 py-2 rounded-xl text-sm font-medium transition-colors"
-                    >
-                      <Clock size={16} /> Schemalägg
-                    </button>
-                  </div>
-                )}
-                {schedulingPostId === post.id && (
-                  <div className="mt-2 flex gap-2 items-center">
-                    <input
-                      type="datetime-local"
-                      value={scheduleDate}
-                      onChange={e => setScheduleDate(e.target.value)}
-                      min={new Date().toISOString().slice(0, 16)}
-                      className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-accent"
-                    />
-                    <button
-                      onClick={() => handleSchedule(post)}
-                      disabled={!scheduleDate}
-                      className="bg-accent hover:bg-accent-hover disabled:opacity-40 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
-                    >
-                      Bekräfta
-                    </button>
-                  </div>
-                )}
-                {post.status === 'scheduled' && (
-                  <p className="mt-2 text-center text-sm text-amber-600 font-medium flex items-center justify-center gap-1">
-                    <Clock size={14} /> Schemalagd {post.scheduled_at ? `— ${new Date(post.scheduled_at).toLocaleString('sv-SE')}` : ''}
-                  </p>
-                )}
-                {post.status === 'published' && (
-                  <p className="mt-2 text-center text-sm text-green-600 font-medium">Publicerad på LinkedIn</p>
-                )}
-              </div>
+              <PostCard
+                key={post.id}
+                post={post}
+                onUpdate={handleUpdatePost}
+                onToggleSelect={togglePostSelect}
+                isSelected={selectedPostIds.includes(post.id)}
+              />
             ))}
           </div>
 
