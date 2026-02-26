@@ -49,6 +49,13 @@ export const STORY_TYPES = [
     icon: '🤔',
     columns: ['Hook', 'Alternativ A', 'Alternativ B', 'Reveal'],
   },
+  {
+    id: 'custom',
+    name: 'Custom inlägg',
+    description: 'Skriv egna instruktioner för skräddarsytt innehåll',
+    icon: '✏️',
+    columns: [],
+  },
 ]
 
 export const TONES = [

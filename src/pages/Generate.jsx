@@ -34,6 +34,7 @@ export default function Generate() {
   const [selectedTone, setSelectedTone] = useState('professionell')
   const [posts, setPosts] = useState([])
   const [selectedPostIds, setSelectedPostIds] = useState([])
+  const [customPrompt, setCustomPrompt] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
@@ -41,7 +42,8 @@ export default function Generate() {
   const isNewsletter = platform === 'newsletter'
   const types = isNewsletter ? NEWSLETTER_TYPES : isLinkedin ? LINKEDIN_TYPES : STORY_TYPES
   const tones = isNewsletter ? NEWSLETTER_TONES : isLinkedin ? LINKEDIN_TONES : TONES
-  const postCount = isNewsletter ? 1 : isLinkedin ? 3 : 7
+  const isCustom = selectedType === 'custom' || selectedType === 'custom-linkedin' || selectedType === 'custom-newsletter'
+  const postCount = isCustom ? 1 : isNewsletter ? 1 : isLinkedin ? 3 : 7
   const storyType = types.find(t => t.id === selectedType)
 
   function handlePlatformSelect(id) {
@@ -88,6 +90,7 @@ export default function Generate() {
         tone: selectedTone,
         platform,
         instructions: instructionsContent,
+        customPrompt: isCustom ? customPrompt : undefined,
       })
 
       const generatedPosts = result.posts || []
@@ -242,6 +245,19 @@ export default function Generate() {
           </div>
           )}
 
+          {isCustom && (
+            <div className="mb-8">
+              <h2 className="text-lg mb-4">Dina instruktioner</h2>
+              <textarea
+                value={customPrompt}
+                onChange={e => setCustomPrompt(e.target.value)}
+                placeholder="Beskriv vad du vill ha, t.ex. 'Skapa ett Instagram-inlägg med rubriken Ny till Cefund? Börja här som summerar det viktigaste och konverterar läsaren.'"
+                rows={4}
+                className="w-full border-2 border-gray-200 rounded-xl p-4 text-sm focus:outline-none focus:border-accent resize-none"
+              />
+            </div>
+          )}
+
           <h2 className="text-lg mb-4">Välj tonläge</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
             {tones.map(tone => (
@@ -269,7 +285,7 @@ export default function Generate() {
             </button>
             <button
               onClick={() => setStep(4)}
-              disabled={selectedSources.length === 0}
+              disabled={selectedSources.length === 0 || (isCustom && !customPrompt.trim())}
               className="flex items-center gap-2 bg-accent hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed text-white px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200"
             >
               Nästa <ArrowRight size={16} />
@@ -297,6 +313,12 @@ export default function Generate() {
                 <dt className="text-text-muted">Inläggstyp</dt>
                 <dd className="font-medium">{storyType?.name}</dd>
               </div>
+              {isCustom && (
+                <div>
+                  <dt className="text-text-muted mb-1">Instruktioner</dt>
+                  <dd className="font-medium text-xs bg-white rounded-lg p-2 whitespace-pre-line">{customPrompt}</dd>
+                </div>
+              )}
               <div className="flex justify-between">
                 <dt className="text-text-muted">Antal källor</dt>
                 <dd className="font-medium">{selectedSources.length}</dd>
@@ -353,6 +375,7 @@ export default function Generate() {
                 setPlatform(null)
                 setSelectedType(null)
                 setSelectedSources([])
+                setCustomPrompt('')
                 setError(null)
               }}
               className="text-sm text-text-muted hover:text-text transition-colors"

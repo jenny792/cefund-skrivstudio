@@ -1,9 +1,9 @@
 // Anropa Claude API via Vercel serverless proxy
-export async function generatePosts({ storyType, sources, tone, platform = 'instagram', instructions = [] }) {
+export async function generatePosts({ storyType, sources, tone, platform = 'instagram', instructions = [], customPrompt }) {
   const res = await fetch('/api/claude', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ storyType, sources, tone, platform, instructions }),
+    body: JSON.stringify({ storyType, sources, tone, platform, instructions, customPrompt }),
   })
 
   if (!res.ok) {

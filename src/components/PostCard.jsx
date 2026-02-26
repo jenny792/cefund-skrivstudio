@@ -10,6 +10,7 @@ export default function PostCard({ post, onUpdate, onToggleSelect, isSelected })
 
   const isLinkedin = isLinkedInType(post.story_type)
   const isNewsletter = isNewsletterType(post.story_type)
+  const isCustom = post.story_type === 'custom' || post.story_type === 'custom-linkedin' || post.story_type === 'custom-newsletter'
 
   function handleSave() {
     onUpdate({ ...post, fields })
@@ -56,6 +57,11 @@ export default function PostCard({ post, onUpdate, onToggleSelect, isSelected })
           {isNewsletter && (
             <span className="text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
               Nyhetsbrev
+            </span>
+          )}
+          {isCustom && (
+            <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
+              Custom
             </span>
           )}
           <span className={`text-xs px-2 py-0.5 rounded-full ${
@@ -109,8 +115,8 @@ export default function PostCard({ post, onUpdate, onToggleSelect, isSelected })
         ))}
       </div>
 
-      {/* Kopiera-knapp för LinkedIn/Nyhetsbrev */}
-      {(isLinkedin || isNewsletter) && !editing && (
+      {/* Kopiera-knapp för LinkedIn/Nyhetsbrev/Custom */}
+      {(isLinkedin || isNewsletter || isCustom) && !editing && (
         <div className="px-4 pb-4">
           <button
             onClick={handleCopyText}
@@ -123,7 +129,7 @@ export default function PostCard({ post, onUpdate, onToggleSelect, isSelected })
             {copied ? (
               <><Check size={16} /> Kopierat!</>
             ) : (
-              <><Copy size={16} /> {isNewsletter ? 'Kopiera nyhetsbrev' : 'Kopiera för LinkedIn'}</>
+              <><Copy size={16} /> {isNewsletter ? 'Kopiera nyhetsbrev' : isLinkedin ? 'Kopiera för LinkedIn' : 'Kopiera text'}</>
             )}
           </button>
         </div>

@@ -37,10 +37,12 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'ANTHROPIC_API_KEY saknas' })
   }
 
-  const { storyType, sources, tone, platform = 'instagram', instructions = [] } = req.body
+  const { storyType, sources, tone, platform = 'instagram', instructions = [], customPrompt } = req.body
+
+  const isCustom = storyType === 'custom' || storyType === 'custom-linkedin' || storyType === 'custom-newsletter'
 
   const typeMap = platform === 'newsletter' ? NEWSLETTER_TYPE_MAP : platform === 'linkedin' ? LINKEDIN_TYPE_MAP : STORY_TYPE_MAP
-  const typeInfo = typeMap[storyType]
+  const typeInfo = isCustom ? { name: 'Custom inlägg', columns: [] } : typeMap[storyType]
 
   if (!typeInfo) {
     return res.status(400).json({ error: 'Okänd inläggstyp' })
@@ -82,14 +84,16 @@ export default async function handler(req, res) {
     })
   )
 
-  const postCount = platform === 'newsletter' ? 1 : platform === 'linkedin' ? 3 : 7
+  const postCount = isCustom ? 1 : platform === 'newsletter' ? 1 : platform === 'linkedin' ? 3 : 7
 
   // Bygg instruktionssektion om det finns instruktioner
   const instructionsBlock = instructions.length > 0
     ? `INSTRUKTIONER FÖR SKRIVANDE:\n${instructions.map((inst, i) => `${i + 1}. ${inst}`).join('\n')}\n\n`
     : ''
 
-  const prompt = platform === 'newsletter'
+  const prompt = isCustom
+    ? buildCustomPrompt(customPrompt, tone, resolvedSources, platform, instructionsBlock)
+    : platform === 'newsletter'
     ? buildNewsletterPrompt(typeInfo, tone, resolvedSources, postCount, instructionsBlock)
     : platform === 'linkedin'
     ? buildLinkedInPrompt(typeInfo, tone, resolvedSources, postCount, instructionsBlock)
@@ -230,5 +234,29 @@ Svara ENBART med en JSON-array. Varje objekt ska ha ett "fields"-objekt med nyck
 Exempel på format:
 [
   { "fields": { "${typeInfo.columns[0]}": "...", "${typeInfo.columns[1]}": "...", "${typeInfo.columns[2]}": "...", "${typeInfo.columns[3]}": "...", "${typeInfo.columns[4]}": "..." } }
+]`
+}
+
+function buildCustomPrompt(customPrompt, tone, sources, platform, instructionsBlock) {
+  const platformName = platform === 'newsletter' ? 'nyhetsbrev' : platform === 'linkedin' ? 'LinkedIn-inlägg' : 'Instagram Stories-innehåll'
+  return `Du skriver ${platformName} för Cefund. Cecilia är grundaren.
+
+${instructionsBlock}VIKTIGT: Använd ENBART information som finns i källorna nedan. Hitta INTE på fakta, siffror, tjänster eller påståenden som inte finns i källmaterialet. Allt innehåll måste kunna spåras tillbaka till en specifik källa.
+
+ANVÄNDARENS INSTRUKTIONER:
+${customPrompt}
+
+Tonläge: ${tone || 'professionell'}
+
+Här är källorna — använd ENBART dessa:
+${sources.map((s, i) => `--- Källa ${i + 1} ---\n${s}`).join('\n\n')}
+
+Skapa 1 inlägg baserat på instruktionerna ovan. Välj själv lämpliga fältnamn som passar innehållet (t.ex. "Rubrik", "Brödtext", "CTA" eller vad som passar bäst).
+
+Svara ENBART med en JSON-array. Varje objekt ska ha ett "fields"-objekt med de fältnamn du valt.
+
+Exempel på format:
+[
+  { "fields": { "Rubrik": "...", "Brödtext": "...", "CTA": "..." } }
 ]`
 }

@@ -1,6 +1,6 @@
 // Nyhetsbrev-typ-ID:n för att avgöra plattform från story_type
 export const NEWSLETTER_TYPE_IDS = new Set([
-  'allman', 'kund',
+  'allman', 'kund', 'custom-newsletter',
 ])
 
 export function isNewsletterType(storyType) {
@@ -22,6 +22,13 @@ export const NEWSLETTER_TYPES = [
     description: 'Exklusiva insikter bara för kunder',
     icon: '💎',
     columns: ['Ämnesrad', 'Hook', 'Djupanalys', 'Case/Insikt', 'CTA'],
+  },
+  {
+    id: 'custom-newsletter',
+    name: 'Custom inlägg',
+    description: 'Skriv egna instruktioner för skräddarsytt innehåll',
+    icon: '✏️',
+    columns: [],
   },
 ]
 

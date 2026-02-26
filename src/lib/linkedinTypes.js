@@ -2,6 +2,7 @@
 export const LINKEDIN_TYPE_IDS = new Set([
   'tankeledare', 'tips-insikter', 'storytelling', 'data-statistik',
   'fraga-svar', 'myt-vs-fakta', 'listicle', 'kundberattelse',
+  'custom-linkedin',
 ])
 
 export function isLinkedInType(storyType) {
@@ -65,6 +66,13 @@ export const LINKEDIN_TYPES = [
     description: 'Lyft fram kundresultat och framgångshistorier',
     icon: '⭐',
     columns: ['Rubrik', 'Situation', 'Resultat', 'CTA'],
+  },
+  {
+    id: 'custom-linkedin',
+    name: 'Custom inlägg',
+    description: 'Skriv egna instruktioner för skräddarsytt innehåll',
+    icon: '✏️',
+    columns: [],
   },
 ]
 
