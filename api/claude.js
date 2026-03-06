@@ -86,9 +86,9 @@ export default async function handler(req, res) {
 
   const postCount = isCustom ? 1 : platform === 'newsletter' ? 1 : platform === 'linkedin' ? 3 : 7
 
-  // Bygg instruktionssektion om det finns instruktioner
+  // Bygg instruktionssektion om det finns instruktioner — presentera som obligatoriska regler
   const instructionsBlock = instructions.length > 0
-    ? `INSTRUKTIONER FÖR SKRIVANDE:\n${instructions.map((inst, i) => `${i + 1}. ${inst}`).join('\n')}\n\n`
+    ? `OBLIGATORISKA REGLER — texten MÅSTE följa samtliga punkter nedan. Bryt ALDRIG mot dessa regler. Om en formulering riskerar att bryta mot en regel, skriv om den tills den är compliant. Det är bättre att vara försiktig än att skriva något som kan vara vilseledande eller manipulativt.\n\n${instructions.map((inst, i) => `${i + 1}. ${inst}`).join('\n')}\n\n`
     : ''
 
   const prompt = isCustom
