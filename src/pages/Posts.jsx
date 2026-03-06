@@ -4,22 +4,14 @@ import PostCard from '../components/PostCard'
 import ExportBar from '../components/ExportBar'
 import { STORY_TYPES } from '../lib/storyTypes'
 import { getPosts, updatePost as updatePostInDb } from '../lib/posts'
-import { getInstructions } from '../lib/instructions'
-import { validatePosts } from '../lib/validate'
 
 export default function Posts() {
   const [posts, setPosts] = useState([])
-  const [instructions, setInstructions] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedIds, setSelectedIds] = useState([])
   const [typeFilter, setTypeFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
-  const [complianceFilter, setComplianceFilter] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
-
-  useEffect(() => {
-    getInstructions().then(setInstructions)
-  }, [])
 
   useEffect(() => {
     fetchPosts()
@@ -55,49 +47,12 @@ export default function Posts() {
     }
   }
 
-  async function handleRevalidate(post) {
-    // Uppdatera state med validating-status
-    setPosts(prev => prev.map(p =>
-      p.id === post.id ? { ...p, compliance: { verdict: 'unknown', issues: [], validating: true } } : p
-    ))
-
-    const instructionsContent = instructions.map(i => `${i.title}: ${i.content}`)
-
-    try {
-      const results = await validatePosts([post], instructionsContent)
-      const compliance = results[0] || { verdict: 'unknown', issues: [] }
-
-      setPosts(prev => prev.map(p =>
-        p.id === post.id ? { ...p, compliance } : p
-      ))
-
-      try {
-        await updatePostInDb(post.id, { compliance })
-      } catch (err) {
-        console.error('Kunde inte spara compliance:', err)
-      }
-    } catch (err) {
-      console.error('Valideringsfel:', err)
-    }
-  }
-
-  // Lokal sökning + compliance-filter
+  // Lokal sökning
   const filtered = posts.filter(p => {
-    if (searchQuery !== '') {
-      const matchesSearch = Object.values(p.fields).some(v =>
-        String(v).toLowerCase().includes(searchQuery.toLowerCase())
-      )
-      if (!matchesSearch) return false
-    }
-
-    if (complianceFilter !== 'all') {
-      const verdict = p.compliance?.verdict || 'unknown'
-      if (complianceFilter === 'pass' && verdict !== 'pass') return false
-      if (complianceFilter === 'warning' && verdict !== 'warning') return false
-      if (complianceFilter === 'fail' && verdict !== 'fail') return false
-    }
-
-    return true
+    if (searchQuery === '') return true
+    return Object.values(p.fields).some(v =>
+      String(v).toLowerCase().includes(searchQuery.toLowerCase())
+    )
   })
 
   return (
@@ -141,16 +96,6 @@ export default function Posts() {
           <option value="reviewed">Klar</option>
           <option value="exported">Exporterad</option>
         </select>
-        <select
-          value={complianceFilter}
-          onChange={e => setComplianceFilter(e.target.value)}
-          className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent bg-white"
-        >
-          <option value="all">Alla compliance</option>
-          <option value="pass">Godkända</option>
-          <option value="warning">Varningar</option>
-          <option value="fail">Ej godkända</option>
-        </select>
       </div>
 
       {/* Lista */}
@@ -175,7 +120,6 @@ export default function Posts() {
               onUpdate={handleUpdatePost}
               onToggleSelect={toggleSelect}
               isSelected={selectedIds.includes(post.id)}
-              onRevalidate={handleRevalidate}
             />
           ))}
         </div>

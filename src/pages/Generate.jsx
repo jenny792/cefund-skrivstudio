@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Sparkles, ArrowLeft, ArrowRight, Loader2, Library, Linkedin, Instagram, Mail, ShieldCheck } from 'lucide-react'
+import { Sparkles, ArrowLeft, ArrowRight, Loader2, Library, Linkedin, Instagram, Mail } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import StoryTypeCard from '../components/StoryTypeCard'
 import PostCard from '../components/PostCard'
@@ -12,7 +12,6 @@ import { generatePosts } from '../lib/claude'
 import { getSources } from '../lib/sources'
 import { getInstructions } from '../lib/instructions'
 import { savePosts, updatePost as updatePostInDb } from '../lib/posts'
-import { validatePosts } from '../lib/validate'
 
 const PLATFORMS = [
   { id: 'instagram', name: 'Instagram Stories', icon: Instagram, description: 'Korta stories för Instagram' },
@@ -37,7 +36,6 @@ export default function Generate() {
   const [selectedPostIds, setSelectedPostIds] = useState([])
   const [customPrompt, setCustomPrompt] = useState('')
   const [loading, setLoading] = useState(false)
-  const [validating, setValidating] = useState(false)
   const [error, setError] = useState(null)
 
   const isLinkedin = platform === 'linkedin'
@@ -75,47 +73,6 @@ export default function Generate() {
     }
   }
 
-  // Kör compliance-validering på en lista med poster
-  async function runValidation(postsToValidate) {
-    const instructionsContent = instructions.map(i => `${i.title}: ${i.content}`)
-    setValidating(true)
-
-    try {
-      const results = await validatePosts(postsToValidate, instructionsContent)
-
-      // Uppdatera state med compliance-resultat
-      setPosts(prev => prev.map(p => {
-        const idx = postsToValidate.findIndex(pv => pv.id === p.id)
-        if (idx === -1) return p
-        const compliance = results[idx] || { verdict: 'unknown', issues: [] }
-        return { ...p, compliance }
-      }))
-
-      // Spara compliance i DB
-      for (let i = 0; i < postsToValidate.length; i++) {
-        const compliance = results[i] || { verdict: 'unknown', issues: [] }
-        try {
-          await updatePostInDb(postsToValidate[i].id, { compliance })
-        } catch (err) {
-          console.error('Kunde inte spara compliance:', err)
-        }
-      }
-    } catch (err) {
-      console.error('Valideringsfel:', err)
-    } finally {
-      setValidating(false)
-    }
-  }
-
-  // Revalidera ett enskilt inlägg efter redigering
-  async function handleRevalidate(post) {
-    // Uppdatera state direkt med validating-status
-    setPosts(prev => prev.map(p =>
-      p.id === post.id ? { ...p, compliance: { verdict: 'unknown', issues: [], validating: true } } : p
-    ))
-    await runValidation([post])
-  }
-
   async function handleGenerate() {
     setLoading(true)
     setError(null)
@@ -139,23 +96,16 @@ export default function Generate() {
       const generatedPosts = result.posts || []
 
       // Spara i Supabase och använd returnerade poster (med riktiga id:n)
-      let savedPosts
       try {
-        savedPosts = await savePosts(generatedPosts, selectedType)
+        const savedPosts = await savePosts(generatedPosts, selectedType)
         setPosts(savedPosts)
       } catch (saveErr) {
         console.error('Kunde inte spara till Supabase:', saveErr)
         // Visa ändå de genererade inläggen lokalt
         setPosts(generatedPosts)
-        savedPosts = generatedPosts
       }
 
       setStep(5)
-
-      // Kör compliance-validering i bakgrunden efter att inläggen visas
-      if (savedPosts.length > 0 && savedPosts[0].id) {
-        runValidation(savedPosts)
-      }
     } catch (err) {
       setError(`Kunde inte generera: ${err.message}`)
     } finally {
@@ -434,21 +384,6 @@ export default function Generate() {
             </button>
           </div>
 
-          {/* Compliance-status */}
-          {validating && (
-            <div className="mb-6 p-4 rounded-xl bg-gray-50 border border-gray-200 flex items-center gap-3">
-              <Loader2 size={20} className="animate-spin text-text-muted" />
-              <p className="text-sm text-text-muted">Validerar compliance...</p>
-            </div>
-          )}
-
-          {!validating && posts.length > 0 && posts.every(p => p.compliance?.verdict === 'pass') && (
-            <div className="mb-6 p-4 rounded-xl bg-green-50 border border-green-100 flex items-center gap-3">
-              <ShieldCheck size={20} className="text-green-600 shrink-0" />
-              <p className="text-sm text-green-800">Alla inlägg godkända i compliance-granskningen.</p>
-            </div>
-          )}
-
           {/* LinkedIn info */}
           {isLinkedin && (
             <div className="mb-6 p-4 rounded-xl bg-blue-50 border border-blue-100 flex items-center gap-3">
@@ -477,7 +412,6 @@ export default function Generate() {
                 onUpdate={handleUpdatePost}
                 onToggleSelect={togglePostSelect}
                 isSelected={selectedPostIds.includes(post.id)}
-                onRevalidate={handleRevalidate}
               />
             ))}
           </div>

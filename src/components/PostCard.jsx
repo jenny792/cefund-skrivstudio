@@ -1,48 +1,9 @@
 import { useState } from 'react'
-import { Check, Pencil, X, Copy, Linkedin, ShieldCheck, ShieldAlert, ShieldX, Loader2, Sparkles } from 'lucide-react'
+import { Check, Pencil, X, Copy, Linkedin } from 'lucide-react'
 import { isLinkedInType, LINKEDIN_TYPES } from '../lib/linkedinTypes'
 import { isNewsletterType } from '../lib/newsletterTypes'
 
-function ComplianceBadge({ compliance }) {
-  const verdict = compliance?.verdict || 'unknown'
-
-  if (verdict === 'pass') {
-    return (
-      <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">
-        <ShieldCheck size={12} /> Godkänd
-      </span>
-    )
-  }
-  if (verdict === 'warning') {
-    return (
-      <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
-        <ShieldAlert size={12} /> Varning
-      </span>
-    )
-  }
-  if (verdict === 'fail') {
-    return (
-      <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700">
-        <ShieldX size={12} /> Ej godkänd
-      </span>
-    )
-  }
-  // unknown
-  if (compliance?.validating) {
-    return (
-      <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
-        <Loader2 size={12} className="animate-spin" /> Validerar...
-      </span>
-    )
-  }
-  return (
-    <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
-      <ShieldAlert size={12} /> Ej validerad
-    </span>
-  )
-}
-
-export default function PostCard({ post, onUpdate, onToggleSelect, isSelected, onRevalidate }) {
+export default function PostCard({ post, onUpdate, onToggleSelect, isSelected }) {
   const [editing, setEditing] = useState(false)
   const [fields, setFields] = useState(post.fields)
   const [copied, setCopied] = useState(false)
@@ -51,17 +12,9 @@ export default function PostCard({ post, onUpdate, onToggleSelect, isSelected, o
   const isNewsletter = isNewsletterType(post.story_type)
   const isCustom = post.story_type === 'custom' || post.story_type === 'custom-linkedin' || post.story_type === 'custom-newsletter'
 
-  const compliance = post.compliance || { verdict: 'unknown', issues: [] }
-  const issues = compliance.issues || []
-
   function handleSave() {
-    const updated = { ...post, fields }
-    onUpdate(updated)
+    onUpdate({ ...post, fields })
     setEditing(false)
-    // Nollställ compliance och trigga revalidering
-    if (onRevalidate) {
-      onRevalidate({ ...updated, compliance: { verdict: 'unknown', issues: [], validating: true } })
-    }
   }
 
   function handleCancel() {
@@ -120,7 +73,6 @@ export default function PostCard({ post, onUpdate, onToggleSelect, isSelected, o
           }`}>
             {post.status === 'reviewed' ? 'Klar' : post.status === 'exported' ? 'Exporterad' : 'Utkast'}
           </span>
-          <ComplianceBadge compliance={compliance} />
         </div>
         <div className="flex gap-1">
           {editing ? (
@@ -162,52 +114,6 @@ export default function PostCard({ post, onUpdate, onToggleSelect, isSelected, o
           </div>
         ))}
       </div>
-
-      {/* Compliance-issues */}
-      {issues.length > 0 && !editing && (
-        <div className="px-4 pb-3">
-          <div className={`rounded-xl p-3 space-y-3 ${
-            compliance.verdict === 'fail' ? 'bg-red-50 border border-red-100' : 'bg-orange-50 border border-orange-100'
-          }`}>
-            {issues.map((issue, i) => (
-              <div key={i} className="text-xs space-y-1.5">
-                <div>
-                  <span className={`font-medium ${
-                    compliance.verdict === 'fail' ? 'text-red-700' : 'text-orange-700'
-                  }`}>{issue.rule}:</span>{' '}
-                  <span className={compliance.verdict === 'fail' ? 'text-red-600' : 'text-orange-600'}>
-                    {issue.detail}
-                  </span>
-                </div>
-                {issue.suggestion && issue.original && issue.field && (
-                  <div className="ml-2 pl-2 border-l-2 border-green-300 space-y-1">
-                    <p className="text-green-700 leading-relaxed">
-                      <span className="font-medium">Förslag:</span> {issue.suggestion}
-                    </p>
-                    <button
-                      onClick={() => {
-                        const fieldValue = fields[issue.field] || ''
-                        const updated = fieldValue.replace(issue.original, issue.suggestion)
-                        if (updated === fieldValue) return
-                        const newFields = { ...fields, [issue.field]: updated }
-                        setFields(newFields)
-                        const updatedPost = { ...post, fields: newFields }
-                        onUpdate(updatedPost)
-                        if (onRevalidate) {
-                          onRevalidate({ ...updatedPost, compliance: { verdict: 'unknown', issues: [], validating: true } })
-                        }
-                      }}
-                      className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-green-100 hover:bg-green-200 text-green-700 font-medium transition-colors"
-                    >
-                      <Sparkles size={12} /> Applicera
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Kopiera-knapp för LinkedIn/Nyhetsbrev/Custom */}
       {(isLinkedin || isNewsletter || isCustom) && !editing && (
