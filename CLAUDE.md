@@ -1,10 +1,11 @@
 # Cefund Skrivstudio
 
-## Status — senast uppdaterad 2026-02-25
+## Status — senast uppdaterad 2026-03-06
 
 ### Vad som fungerar
 - **Källbibliotek** — lägg till källor (text, URL med auto-scrape), sparas permanent i Supabase
 - **Instruktioner** (`/instruktioner`) — skrivriktlinjer (brand voice, tonläge, ord att undvika) som alltid skickas med vid generering utan att behöva väljas. CRUD med inline-redigering, sök. Separerar "hur agenten ska skriva" från "vad den ska skriva om" (källor)
+- **Compliance inbakat i generering** — instruktioner presenteras som obligatoriska regler i prompten, så inlägg är compliant från start utan separat validering
 - **Generera stories** — välj story-typ (7 st), välj källor + tonläge, genererar via Claude API
 - **Generera LinkedIn-inlägg** — välj LinkedIn-typ (8 st), genererar längre inlägg med copy-paste-flöde
 - **LinkedIn copy-paste** — "Kopiera för LinkedIn"-knapp på varje inlägg, kopierar ren text i rätt fältordning
@@ -17,6 +18,7 @@
 
 ### Borttaget
 - **LinkedIn OAuth** — publicera/schemalägg via OAuth togs bort, ersatt med copy-paste-flöde. Filer (`api/linkedin/*`, `src/lib/linkedin.js`) finns kvar men används inte.
+- **Separat compliance-validering** — api/validate.js, ComplianceBadge, issues-panel och compliance-filter togs bort. Ersatt med obligatoriska regler i genereringsprompten.
 
 ### Kända begränsningar
 - Prompten instruerar Claude att enbart använda källmaterialet, men korta/tunna källor ger generella svar
