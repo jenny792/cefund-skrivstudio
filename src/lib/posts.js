@@ -6,6 +6,7 @@ export async function savePosts(posts, storyType) {
     story_type: storyType,
     status: post.status || 'draft',
     fields: post.fields,
+    compliance: post.compliance || { verdict: 'unknown', issues: [] },
   }))
 
   const { data, error } = await supabase
